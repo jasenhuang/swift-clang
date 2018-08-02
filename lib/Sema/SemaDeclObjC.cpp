@@ -1041,6 +1041,7 @@ ActOnStartClassInterface(Scope *S, SourceLocation AtInterfaceLoc,
   }
   
   AddPragmaAttributes(TUScope, IDecl);
+  AddPragmaPatch(TUScope, IDecl);
   PushOnScopeChains(IDecl, TUScope);
 
   // Start the definition of this class. If we're in a redefinition case, there 
@@ -1229,6 +1230,7 @@ Sema::ActOnStartProtocolInterface(SourceLocation AtProtoInterfaceLoc,
   if (AttrList)
     ProcessDeclAttributeList(TUScope, PDecl, AttrList);
   AddPragmaAttributes(TUScope, PDecl);
+  AddPragmaPatch(TUScope, PDecl);
   ProcessAPINotes(PDecl);
 
   // Merge attributes from previous declarations.
@@ -1761,10 +1763,11 @@ Sema::ActOnForwardProtocolDeclaration(SourceLocation AtProtocolLoc,
     if (attrList)
       ProcessDeclAttributeList(TUScope, PDecl, attrList);
     AddPragmaAttributes(TUScope, PDecl);
-
+    AddPragmaPatch(TUScope, PDecl);
+      
     if (PrevDecl)
       mergeDeclAttributes(PDecl, PrevDecl);
-
+      
     DeclsInGroup.push_back(PDecl);
   }
 
@@ -1862,6 +1865,8 @@ ActOnStartCategoryInterface(SourceLocation AtInterfaceLoc,
     ProcessDeclAttributeList(TUScope, CDecl, AttrList);
   AddPragmaAttributes(TUScope, CDecl);
 
+  AddPragmaPatch(TUScope, CDecl);
+    
   CheckObjCDeclScope(CDecl);
   return ActOnObjCContainerStartDefinition(CDecl);
 }
@@ -2005,6 +2010,7 @@ Decl *Sema::ActOnStartClassImplementation(
                                       /*PrevDecl=*/nullptr, ClassLoc,
                                       true);
     AddPragmaAttributes(TUScope, IDecl);
+    AddPragmaPatch(TUScope, IDecl);
     IDecl->startDefinition();
     if (SDecl) {
       IDecl->setSuperClass(Context.getTrivialTypeSourceInfo(
@@ -4650,6 +4656,7 @@ Decl *Sema::ActOnMethodDeclaration(
     // Apply the attributes to the parameter.
     ProcessDeclAttributeList(TUScope, Param, ArgInfo[i].ArgAttrs);
     AddPragmaAttributes(TUScope, Param);
+    AddPragmaPatch(TUScope, Param);
     ProcessAPINotes(Param);
 
     if (Param->hasAttr<BlocksAttr>()) {
@@ -4682,6 +4689,7 @@ Decl *Sema::ActOnMethodDeclaration(
   if (AttrList)
     ProcessDeclAttributeList(TUScope, ObjCMethod, AttrList);
   AddPragmaAttributes(TUScope, ObjCMethod);
+  AddPragmaPatch(TUScope, ObjCMethod);
   ProcessAPINotes(ObjCMethod);
 
   // Add the method now.

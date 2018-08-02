@@ -10240,6 +10240,7 @@ Decl *Sema::ActOnAliasDeclaration(Scope *S,
 
   ProcessDeclAttributeList(S, NewTD, AttrList);
   AddPragmaAttributes(S, NewTD);
+  AddPragmaPatch(S, NewTD);
   ProcessAPINotes(NewTD);
 
   CheckTypedefForVariablyModifiedType(S, NewTD);

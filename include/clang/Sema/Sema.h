@@ -499,6 +499,13 @@ public:
     bool IsUsed;
   };
   SmallVector<PragmaAttributeEntry, 2> PragmaAttributeStack;
+  
+  /// \#pragma clang patch.
+  struct PragmaPatchEntry {
+    SourceLocation Loc;
+    AttributeList *Attribute;
+  };
+  SmallVector<PragmaPatchEntry, 2> PragmaPatchStack;
 
   /// \brief The declaration that is currently receiving an attribute from the
   /// #pragma attribute stack.
@@ -8455,10 +8462,19 @@ public:
 
   /// \brief Called on well-formed '\#pragma clang attribute pop'.
   void ActOnPragmaAttributePop(SourceLocation PragmaLoc);
+    
+  /// \brief Called on well-formed '\#pragma clang patch begin'.
+  void ActOnPragmaPatchPush(AttributeList &Attribute, SourceLocation PragmaLoc);
+
+  /// \brief Called on well-formed '\#pragma clang patch end'.
+  void ActOnPragmaPatchPop(SourceLocation PragmaLoc);
 
   /// \brief Adds the attributes that have been specified using the
   /// '\#pragma clang attribute push' directives to the given declaration.
   void AddPragmaAttributes(Scope *S, Decl *D);
+
+  /// '\#pragma clang patch begin' directives to the given declaration.
+  void AddPragmaPatch(Scope *S, Decl *D);
 
   void DiagnoseUnterminatedPragmaAttribute();
 

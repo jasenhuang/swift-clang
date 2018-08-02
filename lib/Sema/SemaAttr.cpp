@@ -641,13 +641,39 @@ void Sema::ActOnPragmaAttributePop(SourceLocation PragmaLoc) {
   PragmaAttributeStack.pop_back();
 }
 
+//Patch
+void Sema::ActOnPragmaPatchPush(AttributeList &Attribute, SourceLocation PragmaLoc) {
+    PragmaPatchEntry Entry({PragmaLoc, &Attribute});
+    PragmaPatchStack.push_back(Entry);
+}
+void Sema::ActOnPragmaPatchPop(SourceLocation PragmaLoc) {
+    if (PragmaPatchStack.empty()) {
+        Diag(PragmaLoc, diag::err_pragma_attribute_stack_mismatch);
+        return;
+    }
+    //const PragmaPatchEntry &Entry = PragmaPatchStack.back();
+    PragmaPatchStack.pop_back();
+}
+
+void Sema::AddPragmaPatch(Scope *S, Decl *D) {
+    if (PragmaPatchStack.empty()) return ;
+    
+    PragmaPatchEntry &Entry = PragmaPatchStack.back();
+    
+    for (const AttributeList* l = Entry.Attribute; l; l = l->getNext()) {
+        D->addAttr(::new (Context)
+                   PatchAttr(l->getRange(), Context, l->getName()->getName(),
+                             l->getAttributeSpellingListIndex()));
+    }
+}
+
 void Sema::AddPragmaAttributes(Scope *S, Decl *D) {
   if (PragmaAttributeStack.empty())
     return;
   for (auto &Entry : PragmaAttributeStack) {
     const AttributeList *Attribute = Entry.Attribute;
     assert(Attribute && "Expected an attribute");
-
+      
     // Ensure that the attribute can be applied to the given declaration.
     bool Applies = false;
     for (const auto &Rule : Entry.MatchRules) {

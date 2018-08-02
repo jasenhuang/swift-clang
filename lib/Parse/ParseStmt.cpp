@@ -310,6 +310,11 @@ Retry:
     ProhibitAttributes(Attrs);
     HandlePragmaPack();
     return StmtEmpty();
+        
+  case tok::annot_pragma_patch:
+    ProhibitAttributes(Attrs);
+    HandlePragmaPatch();
+    return StmtEmpty();
 
   case tok::annot_pragma_msstruct:
     ProhibitAttributes(Attrs);

@@ -634,6 +634,15 @@ def Annotate : InheritableParamAttr {
   let Documentation = [Undocumented];
 }
 
+def Patch : InheritableParamAttr {
+    let Spellings = [Clang<"patch">];
+    let Args = [StringArgument<"PatchVersion">];
+    // Ensure that the annotate attribute can be used with
+    // '#pragma clang attribute' even though it has no subject list.
+    let ForcePragmaAttributeSupport = 1;
+    let Documentation = [Undocumented];
+}
+
 def ARMInterrupt : InheritableAttr, TargetSpecificAttr<TargetARM> {
   // NOTE: If you add any additional spellings, MSP430Interrupt's,
   // MipsInterrupt's and AnyX86Interrupt's spellings must match.

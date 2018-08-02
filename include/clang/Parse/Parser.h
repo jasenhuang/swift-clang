@@ -162,6 +162,7 @@ class Parser : public CodeCompletionHandler {
   std::unique_ptr<PragmaHandler> MSStructHandler;
   std::unique_ptr<PragmaHandler> UnusedHandler;
   std::unique_ptr<PragmaHandler> WeakHandler;
+  std::unique_ptr<PragmaHandler> PatchHandler;
   std::unique_ptr<PragmaHandler> RedefineExtnameHandler;
   std::unique_ptr<PragmaHandler> FPContractHandler;
   std::unique_ptr<PragmaHandler> OpenCLExtensionHandler;
@@ -597,6 +598,8 @@ private:
       SourceLocation &AnyLoc, SourceLocation &LastMatchRuleEndLoc);
 
   void HandlePragmaAttribute();
+    
+  void HandlePragmaPatch();
 
   /// GetLookAheadToken - This peeks ahead N tokens and returns that token
   /// without consuming any tokens.  LookAhead(0) returns 'Tok', LookAhead(1)

@@ -21,6 +21,8 @@
 #include "clang/Sema/LoopHint.h"
 #include "clang/Sema/Scope.h"
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
+
 using namespace clang;
 
 namespace {
@@ -35,6 +37,15 @@ struct PragmaGCCVisibilityHandler : public PragmaHandler {
   explicit PragmaGCCVisibilityHandler() : PragmaHandler("visibility") {}
   void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
                     Token &FirstToken) override;
+};
+    
+struct PragmaPatchHandler : public PragmaHandler {
+    explicit PragmaPatchHandler(AttributeFactory &AttrFactory)
+    : PragmaHandler("patch"),AttributesForPragmaAttribute(AttrFactory) {}
+    void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
+                      Token &FirstToken) override;
+    /// A pool of attributes that were parsed in \#pragma clang attribute.
+    ParsedAttributes AttributesForPragmaAttribute;
 };
 
 struct PragmaOptionsHandler : public PragmaHandler {
@@ -264,6 +275,9 @@ void Parser::initializePragmaHandlers() {
 
   WeakHandler.reset(new PragmaWeakHandler());
   PP.AddPragmaHandler(WeakHandler.get());
+    
+  PatchHandler.reset(new PragmaPatchHandler(AttrFactory));
+  PP.AddPragmaHandler("clang", PatchHandler.get());
 
   RedefineExtnameHandler.reset(new PragmaRedefineExtnameHandler());
   PP.AddPragmaHandler(RedefineExtnameHandler.get());
@@ -366,6 +380,8 @@ void Parser::resetPragmaHandlers() {
   UnusedHandler.reset();
   PP.RemovePragmaHandler(WeakHandler.get());
   WeakHandler.reset();
+  PP.RemovePragmaHandler("clang", PatchHandler.get());
+  PatchHandler.reset();
   PP.RemovePragmaHandler(RedefineExtnameHandler.get());
   RedefineExtnameHandler.reset();
 
@@ -1317,6 +1333,7 @@ DiagnosticBuilder createExpectedAttributeSubjectRulesTokenDiagnostic(
 void Parser::HandlePragmaAttribute() {
   assert(Tok.is(tok::annot_pragma_attribute) &&
          "Expected #pragma attribute annotation token");
+    
   SourceLocation PragmaLoc = Tok.getLocation();
   auto *Info = static_cast<PragmaAttributeInfo *>(Tok.getAnnotationValue());
   if (Info->Action == PragmaAttributeInfo::Pop) {
@@ -1478,10 +1495,46 @@ void Parser::HandlePragmaAttribute() {
                                    std::move(SubjectMatchRules));
 }
 
+namespace {
+    struct PragmaPatchInfo {
+        enum ActionType { Begin, End };
+        ActionType Action;
+        ArrayRef<Token> Tokens;
+        ParsedAttributes &Attributes;
+        PragmaPatchInfo(ParsedAttributes &Attributes) : Attributes(Attributes){}
+    };
+} // end anonymous namespace
+
+void Parser::HandlePragmaPatch() {
+    assert(Tok.is(tok::annot_pragma_patch) &&
+           "Expected #pragma attribute annotation patch token");
+    SourceLocation PragmaLoc = Tok.getLocation();
+
+    PragmaPatchInfo *Info = static_cast<PragmaPatchInfo *>(Tok.getAnnotationValue());
+    ParsedAttributes &Attrs = Info->Attributes;
+    Attrs.clearListOnly();
+    
+    for (auto tok : Info->Tokens){
+        IdentifierInfo *AttrName = tok.getIdentifierInfo();
+        Attrs.addNew(AttrName, PragmaLoc, nullptr, PragmaLoc, nullptr, 0,
+                     AttributeList::AS_Pragma);
+    }
+    
+    AttributeList &Attribute = *Attrs.getList();
+    
+    ConsumeAnnotationToken();
+    if (Info->Action == PragmaPatchInfo::End) {
+        Actions.ActOnPragmaPatchPop(PragmaLoc);
+    }else{
+        Actions.ActOnPragmaPatchPush(Attribute, PragmaLoc);
+    }
+}
+
+
 // #pragma GCC visibility comes in two variants:
 //   'push' '(' [visibility] ')'
 //   'pop'
-void PragmaGCCVisibilityHandler::HandlePragma(Preprocessor &PP, 
+void PragmaGCCVisibilityHandler::HandlePragma(Preprocessor &PP,
                                               PragmaIntroducerKind Introducer,
                                               Token &VisTok) {
   SourceLocation VisLoc = VisTok.getLocation();
@@ -1896,6 +1949,58 @@ void PragmaUnusedHandler::HandlePragma(Preprocessor &PP,
     idTok = Identifiers[i];
   }
   PP.EnterTokenStream(Toks, /*DisableMacroExpansion=*/true);
+}
+
+void PragmaPatchHandler::HandlePragma(clang::Preprocessor &PP,
+                                      clang::PragmaIntroducerKind Introducer,
+                                      clang::Token &PatchToken) {
+    SourceLocation PatchLoc = PatchToken.getLocation();
+    
+    Token Tok;
+    PP.LexUnexpandedToken(Tok);
+    
+    auto *Info = new (PP.getPreprocessorAllocator())
+                        PragmaPatchInfo(AttributesForPragmaAttribute);
+    
+    const IdentifierInfo *BeginEnd = Tok.getIdentifierInfo();
+    if (BeginEnd && BeginEnd->isStr("begin")) {
+        Info->Action = PragmaPatchInfo::Begin;
+    } else if (BeginEnd && BeginEnd->isStr("end")) {
+        Info->Action = PragmaPatchInfo::End;
+    } else {
+        PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier)
+        << "patch";
+        return;
+    }
+    
+    SmallVector<Token, 5> AttributeTokens;
+    
+    Token tok;
+    tok.startToken();
+    tok.setLocation(Tok.getLocation());
+    tok.setKind(tok::identifier);
+    auto &II = PP.getIdentifierTable().get("default");
+    tok.setIdentifierInfo(&II);
+    AttributeTokens.push_back(tok);
+    
+    Info->Tokens = llvm::makeArrayRef(AttributeTokens).copy(PP.getPreprocessorAllocator());
+    
+    SourceLocation EndLoc = Tok.getLocation();
+    PP.LexUnexpandedToken(Tok);
+    if (Tok.isNot(tok::eod)) {
+        PP.Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol)
+        << "patch";
+        return;
+    }
+    
+    MutableArrayRef<Token> Toks(PP.getPreprocessorAllocator().Allocate<Token>(1), 1);
+    Toks[0].startToken();
+    Toks[0].setKind(tok::annot_pragma_patch);
+    Toks[0].setLocation(PatchLoc);
+    Toks[0].setAnnotationEndLoc(EndLoc);
+    Toks[0].setAnnotationValue(static_cast<void*>(Info));
+    PP.EnterTokenStream(std::move(Toks), /*DisableMacroExpansion=*/true);
+    
 }
 
 // #pragma weak identifier

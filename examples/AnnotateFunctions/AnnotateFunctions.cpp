@@ -17,6 +17,9 @@
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Lex/LexDiagnostic.h"
+#include "llvm/Support/raw_ostream.h"
+#include "clang/Parse/Parser.h"
+
 using namespace clang;
 
 namespace {
@@ -31,9 +34,10 @@ public:
     if (!EnableAnnotate)
       return true;
     for (auto D : DG)
-      if (FunctionDecl *FD = dyn_cast<FunctionDecl>(D))
-        FD->addAttr(AnnotateAttr::CreateImplicit(FD->getASTContext(),
-                                                 "example_annotation"));
+        if (FunctionDecl *FD = dyn_cast<FunctionDecl>(D)){
+            llvm::errs()<<"add annotation to function:" << FD->getName()<<"\n";
+            FD->addAttr(AnnotateAttr::CreateImplicit(FD->getASTContext(), "example_annotation"));
+        }
     return true;
   }
 };
@@ -63,18 +67,19 @@ public:
                     Token &PragmaTok) override {
 
     Token Tok;
-    PP.LexUnexpandedToken(Tok);
-    if (Tok.isNot(tok::eod))
-      PP.Diag(Tok, diag::ext_pp_extra_tokens_at_eol) << "pragma";
-
-    if (HandledDecl) {
-      DiagnosticsEngine &D = PP.getDiagnostics();
-      unsigned ID = D.getCustomDiagID(
-        DiagnosticsEngine::Error,
-        "#pragma enable_annotate not allowed after declarations");
-      D.Report(PragmaTok.getLocation(), ID);
-    }
-
+      while(Tok.isNot(tok::eod)) {
+          PP.Lex(Tok);// lex next token
+          if(Tok.isNot(tok::eod)){
+              llvm::errs() << PP.getSpelling(Tok) << ":"<< Tok.getKind()<<"\n";
+          }
+      }
+      
+      Tok.startToken();
+      Tok.setKind(tok::annot_pragma_patch);
+      Tok.setLocation(PragmaTok.getLocation().getLocWithOffset(1));
+      Tok.setAnnotationEndLoc(PragmaTok.getLocation());
+      Tok.setAnnotationValue(strdup("unused"));
+      
     EnableAnnotate = true;
   }
 };

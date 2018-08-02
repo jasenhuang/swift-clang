@@ -35,6 +35,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/MathExtras.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace clang;
 using namespace sema;
@@ -3486,7 +3487,7 @@ static void handleAnnotateAttr(Sema &S, Decl *D, const AttributeList &Attr) {
   StringRef Str;
   if (!S.checkStringLiteralArgumentAttr(Attr, 0, Str))
     return;
-
+  llvm::errs()<< Str <<"\n";
   // Don't duplicate annotations that are already set.
   for (const auto *I : D->specific_attrs<AnnotateAttr>()) {
     if (I->getAnnotation() == Str)
@@ -7323,6 +7324,8 @@ void Sema::ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD) {
   // Apply additional attributes specified by '#pragma clang attribute'.
   AddPragmaAttributes(S, D);
 
+  AddPragmaPatch(S, D);
+    
   // Look for API notes that map to attributes.
   ProcessAPINotes(D);
 }

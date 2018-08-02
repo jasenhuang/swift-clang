@@ -594,6 +594,10 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result) {
   case tok::annot_pragma_attribute:
     HandlePragmaAttribute();
     return false;
+  
+  case tok::annot_pragma_patch:
+    HandlePragmaPatch();
+    return false;
 
   case tok::eof:
     // Late template parsing can begin.
@@ -613,7 +617,7 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result) {
 
   ParsedAttributesWithRange attrs(AttrFactory);
   MaybeParseCXX11Attributes(attrs);
-
+    
   Result = ParseExternalDeclaration(attrs);
   return false;
 }
@@ -662,6 +666,9 @@ Parser::ParseExternalDeclaration(ParsedAttributesWithRange &attrs,
     return nullptr;
   case tok::annot_pragma_pack:
     HandlePragmaPack();
+    return nullptr;
+  case tok::annot_pragma_patch:
+    HandlePragmaPatch();
     return nullptr;
   case tok::annot_pragma_msstruct:
     HandlePragmaMSStruct();
