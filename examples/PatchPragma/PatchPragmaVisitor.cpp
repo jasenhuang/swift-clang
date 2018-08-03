@@ -23,17 +23,45 @@
 #include "clang/Patch/PatchPragmaVisitor.h"
 
 namespace clang {
+
+#pragma mark - Objc Decl
+    bool PatchPragmaVisitor::VisitObjCInterfaceDecl(ObjCInterfaceDecl* D) {
+        if (!D->hasAttr<PatchAttr>()) return true;
+        return true;
+    }
+
+    bool PatchPragmaVisitor::VisitObjCProtocolDecl(ObjCProtocolDecl* D) {
+        if (!D->hasAttr<PatchAttr>()) return true;
+        return true;
+    }
+
+    bool PatchPragmaVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
+        if (!D->hasAttr<PatchAttr>()) return true;
+        PatchAttr* attr = D->getAttr<PatchAttr>();
+        llvm::errs()<< D->getNameAsString() <<" " << attr->getPatchVersion() << "\n";
+        
+        IsStartPatch = true;
+        
+        
+
+        return true;
+    }
     
+    
+#pragma mark - stmt
     
     bool PatchPragmaVisitor::VisitNullStmt(NullStmt *Node) {
+        Node->printPretty(OS, NULL, Context.getPrintingPolicy());
         return true;
     }
     
     bool PatchPragmaVisitor::VisitDeclStmt(DeclStmt *Node) {
+        Node->printPretty(OS, NULL, Context.getPrintingPolicy());
         return true;
     }
     
     bool PatchPragmaVisitor::VisitCompoundStmt(CompoundStmt *Node) {
+        
         return true;
     }
     
@@ -54,6 +82,7 @@ namespace clang {
     }
 
     bool PatchPragmaVisitor::VisitIfStmt(IfStmt *If) {
+        If->printPretty(OS, NULL, Context.getPrintingPolicy());
         return true;
     }
     

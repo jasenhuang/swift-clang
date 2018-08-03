@@ -74,49 +74,6 @@ namespace {
         }
     };
     
-//    bool PatchPragmaVisitor::VisitObjCInterfaceDecl(ObjCInterfaceDecl* D) {
-//        if (!D->hasAttr<PatchAttr>()) return true;
-//        return true;
-//    }
-//    
-//    bool PatchPragmaVisitor::VisitObjCProtocolDecl(ObjCProtocolDecl* D) {
-//        if (!D->hasAttr<PatchAttr>()) return true;
-//        return true;
-//    }
-//    
-//    bool PatchPragmaVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
-//        if (!D->hasAttr<PatchAttr>()) return true;
-//        PatchAttr* attr = D->getAttr<PatchAttr>();
-//        llvm::errs()<< D->getNameAsString() <<" " << attr->getPatchVersion() << "\n";
-//        CompoundStmt* body = D->getCompoundBody();
-//        for (Stmt **it = body->body_begin(); it != body->body_end(); ++it) {
-//            (*it)->printPretty(llvm::errs(), NULL, Context.getPrintingPolicy());
-//            llvm::errs()<< "\n";
-//            if ((*it)->getStmtClass() == Stmt::CompoundStmtClass){
-//                CompoundStmt* subbody = (CompoundStmt*)(*it);
-//                for (Stmt **i = subbody->body_begin(); i != subbody->body_end(); ++i) {
-//                    (*i)->printPretty(llvm::errs(), NULL, Context.getPrintingPolicy());
-//                    llvm::errs()<< "\n";
-//                }
-//            }
-//        }
-//
-//        return true;
-//    }
-//    bool PatchPragmaVisitor::VisitObjCArrayLiteral(ObjCArrayLiteral *liternal) {
-//        
-//        return true;
-//    }
-//    
-//    bool PatchPragmaVisitor::VisitBlockExpr(BlockExpr * expr) {
-//        Stmt* body = expr->getBody();
-//        for (Stmt::child_iterator it = body->child_begin(); it != body->child_end(); ++it) {
-//            (*it)->printPretty(llvm::errs(), NULL, Context.getPrintingPolicy());
-//            llvm::errs()<< "\n";
-//        }
-//        return true;
-//    }
-    
 }
 
 int main(int argc, const char** argv)
