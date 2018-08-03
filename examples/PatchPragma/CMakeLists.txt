@@ -11,7 +11,7 @@ endif()
 
 add_llvm_loadable_module(PatchPragma 
 PatchPragma.cpp 
-PatchWriter.cpp
+PatchPragmaVisitor.cpp
 PLUGIN_TOOL clang)
 
 if(LLVM_ENABLE_PLUGINS AND (WIN32 OR CYGWIN))
