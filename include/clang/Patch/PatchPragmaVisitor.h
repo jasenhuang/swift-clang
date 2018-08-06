@@ -27,24 +27,26 @@ namespace clang {
         ASTContext &Context;
         raw_ostream &OS;
         unsigned IndentLevel;
-        bool IsStartPatch;
         
     public:
         PatchPragmaVisitor(ASTContext& context, raw_ostream &os)
-        : Context(context), OS(os), IndentLevel(0), IsStartPatch(false) {};
+        : Context(context), OS(os), IndentLevel(0) {};
         ~ PatchPragmaVisitor() {};
         
 #define ABSTRACT_STMT(STMT)
 #define STMT(CLASS, PARENT) \
-bool Visit##CLASS(CLASS *S);
+StringRef Generate##CLASS(CLASS *S);
 #include "clang/AST/StmtNodes.inc"
   
+        bool shouldTraversePostOrder() const;
+        
         bool VisitObjCInterfaceDecl(ObjCInterfaceDecl* D);
         
         bool VisitObjCProtocolDecl(ObjCProtocolDecl* D);
         
         bool VisitObjCMethodDecl(ObjCMethodDecl *D);
         
+        StringRef GenerateStmtPatch(Stmt *S);
 /*
  #define ABSTRACT_DECL(DECL)
  #define DECL(CLASS, BASE)  \

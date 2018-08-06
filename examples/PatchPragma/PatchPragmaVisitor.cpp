@@ -24,6 +24,11 @@
 
 namespace clang {
 
+#pragma mark - post order
+    bool PatchPragmaVisitor::shouldTraversePostOrder() const {
+        return true;
+    }
+    
 #pragma mark - Objc Decl
     bool PatchPragmaVisitor::VisitObjCInterfaceDecl(ObjCInterfaceDecl* D) {
         if (!D->hasAttr<PatchAttr>()) return true;
@@ -38,462 +43,477 @@ namespace clang {
     bool PatchPragmaVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
         if (!D->hasAttr<PatchAttr>()) return true;
         PatchAttr* attr = D->getAttr<PatchAttr>();
-        llvm::errs()<< D->getNameAsString() <<" " << attr->getPatchVersion() << "\n";
+        OS<< D->getNameAsString() <<" " << attr->getPatchVersion() << "\n";
+        OS<< GenerateStmtPatch(D->getBody());
         
-        IsStartPatch = true;
-        
-        
-
         return true;
     }
     
+    StringRef PatchPragmaVisitor::GenerateStmtPatch(Stmt *S) {
+        StringRef content;
+        switch (S->getStmtClass()) {
+            case Stmt::NoStmtClass:
+                break;
+#define ABSTRACT_STMT(STMT)
+#define STMT(CLASS, PARENT)                                                  \
+case Stmt::CLASS##Class:                                                     \
+content = Generate##CLASS(static_cast<CLASS*>(S));                           \
+break;
+#include "clang/AST/StmtNodes.inc"
+        }
+        return content;
+    }
     
 #pragma mark - stmt
     
-    bool PatchPragmaVisitor::VisitNullStmt(NullStmt *Node) {
-        Node->printPretty(OS, NULL, Context.getPrintingPolicy());
-        return true;
-    }
-    
-    bool PatchPragmaVisitor::VisitDeclStmt(DeclStmt *Node) {
-        Node->printPretty(OS, NULL, Context.getPrintingPolicy());
-        return true;
-    }
-    
-    bool PatchPragmaVisitor::VisitCompoundStmt(CompoundStmt *Node) {
+    StringRef PatchPragmaVisitor::GenerateNullStmt(NullStmt *Node) {
         
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCaseStmt(CaseStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateDeclStmt(DeclStmt *Node) {
+        
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitDefaultStmt(DefaultStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCompoundStmt(CompoundStmt *Node) {
+        std::string content;
+        for (CompoundStmt::body_iterator it = Node->body_begin(); it != Node->body_end(); ++it) {
+            content += GenerateStmtPatch(*it);
+            content += "\n";
+        }
+        return content;
     }
     
-    bool PatchPragmaVisitor::VisitLabelStmt(LabelStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCaseStmt(CaseStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitAttributedStmt(AttributedStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateDefaultStmt(DefaultStmt *Node) {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateLabelStmt(LabelStmt *Node) {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateAttributedStmt(AttributedStmt *Node) {
+        return "";
     }
 
-    bool PatchPragmaVisitor::VisitIfStmt(IfStmt *If) {
-        If->printPretty(OS, NULL, Context.getPrintingPolicy());
-        return true;
+    StringRef PatchPragmaVisitor::GenerateIfStmt(IfStmt *If) {
+        //If->printPretty(OS, NULL, Context.getPrintingPolicy());
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSwitchStmt(SwitchStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateSwitchStmt(SwitchStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitWhileStmt(WhileStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateWhileStmt(WhileStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitDoStmt(DoStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateDoStmt(DoStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitForStmt(ForStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateForStmt(ForStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCForCollectionStmt(ObjCForCollectionStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCForCollectionStmt(ObjCForCollectionStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXForRangeStmt(CXXForRangeStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXForRangeStmt(CXXForRangeStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitMSDependentExistsStmt(MSDependentExistsStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateMSDependentExistsStmt(MSDependentExistsStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitGotoStmt(GotoStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateGotoStmt(GotoStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitIndirectGotoStmt(IndirectGotoStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateIndirectGotoStmt(IndirectGotoStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitContinueStmt(ContinueStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateContinueStmt(ContinueStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitBreakStmt(BreakStmt *Node) {
-        return true;
-    }
-    
-    
-    bool PatchPragmaVisitor::VisitReturnStmt(ReturnStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateBreakStmt(BreakStmt *Node) {
+        return "";
     }
     
     
-    bool PatchPragmaVisitor::VisitGCCAsmStmt(GCCAsmStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateReturnStmt(ReturnStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitMSAsmStmt(MSAsmStmt *Node) {
+    
+    StringRef PatchPragmaVisitor::GenerateGCCAsmStmt(GCCAsmStmt *Node) {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateMSAsmStmt(MSAsmStmt *Node) {
         // FIXME: Implement MS style inline asm statement printer.
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCapturedStmt(CapturedStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCapturedStmt(CapturedStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAtTryStmt(ObjCAtTryStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCAtTryStmt(ObjCAtTryStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAtFinallyStmt(ObjCAtFinallyStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCAtFinallyStmt(ObjCAtFinallyStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAtCatchStmt (ObjCAtCatchStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCAtCatchStmt (ObjCAtCatchStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAtThrowStmt(ObjCAtThrowStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCAtThrowStmt(ObjCAtThrowStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAvailabilityCheckExpr(
+    StringRef PatchPragmaVisitor::GenerateObjCAvailabilityCheckExpr(
                                                      ObjCAvailabilityCheckExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAtSynchronizedStmt(ObjCAtSynchronizedStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCAtSynchronizedStmt(ObjCAtSynchronizedStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCAutoreleasePoolStmt(ObjCAutoreleasePoolStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCAutoreleasePoolStmt(ObjCAutoreleasePoolStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXCatchStmt(CXXCatchStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXCatchStmt(CXXCatchStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXTryStmt(CXXTryStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXTryStmt(CXXTryStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSEHTryStmt(SEHTryStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateSEHTryStmt(SEHTryStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSEHExceptStmt(SEHExceptStmt *Node) {
-       return true;
+    StringRef PatchPragmaVisitor::GenerateSEHExceptStmt(SEHExceptStmt *Node) {
+       return "";
     }
     
-    bool PatchPragmaVisitor::VisitSEHFinallyStmt(SEHFinallyStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateSEHFinallyStmt(SEHFinallyStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSEHLeaveStmt(SEHLeaveStmt *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateSEHLeaveStmt(SEHLeaveStmt *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPParallelDirective(OMPParallelDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPParallelDirective(OMPParallelDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPSimdDirective(OMPSimdDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPSimdDirective(OMPSimdDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPForDirective(OMPForDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPForDirective(OMPForDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPForSimdDirective(OMPForSimdDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPForSimdDirective(OMPForSimdDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPSectionsDirective(OMPSectionsDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPSectionsDirective(OMPSectionsDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPSectionDirective(OMPSectionDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPSectionDirective(OMPSectionDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPSingleDirective(OMPSingleDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPSingleDirective(OMPSingleDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPMasterDirective(OMPMasterDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPMasterDirective(OMPMasterDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPCriticalDirective(OMPCriticalDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPCriticalDirective(OMPCriticalDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPParallelForDirective(OMPParallelForDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPParallelForDirective(OMPParallelForDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPParallelForSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPParallelForSimdDirective(
                                                        OMPParallelForSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPParallelSectionsDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPParallelSectionsDirective(
                                                         OMPParallelSectionsDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTaskDirective(OMPTaskDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTaskDirective(OMPTaskDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTaskyieldDirective(OMPTaskyieldDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTaskyieldDirective(OMPTaskyieldDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPBarrierDirective(OMPBarrierDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPBarrierDirective(OMPBarrierDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTaskwaitDirective(OMPTaskwaitDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTaskwaitDirective(OMPTaskwaitDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTaskgroupDirective(OMPTaskgroupDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTaskgroupDirective(OMPTaskgroupDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPFlushDirective(OMPFlushDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPFlushDirective(OMPFlushDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPOrderedDirective(OMPOrderedDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPOrderedDirective(OMPOrderedDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPAtomicDirective(OMPAtomicDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPAtomicDirective(OMPAtomicDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetDirective(OMPTargetDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTargetDirective(OMPTargetDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetDataDirective(OMPTargetDataDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTargetDataDirective(OMPTargetDataDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetEnterDataDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetEnterDataDirective(
                                                        OMPTargetEnterDataDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetExitDataDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetExitDataDirective(
                                                       OMPTargetExitDataDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetParallelDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetParallelDirective(
                                                       OMPTargetParallelDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetParallelForDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetParallelForDirective(
                                                          OMPTargetParallelForDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTeamsDirective(OMPTeamsDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTeamsDirective(OMPTeamsDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPCancellationPointDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPCancellationPointDirective(
                                                          OMPCancellationPointDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPCancelDirective(OMPCancelDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPCancelDirective(OMPCancelDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTaskLoopDirective(OMPTaskLoopDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTaskLoopDirective(OMPTaskLoopDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTaskLoopSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTaskLoopSimdDirective(
                                                     OMPTaskLoopSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPDistributeDirective(OMPDistributeDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPDistributeDirective(OMPDistributeDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetUpdateDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetUpdateDirective(
                                                     OMPTargetUpdateDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPDistributeParallelForDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPDistributeParallelForDirective(
                                                              OMPDistributeParallelForDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPDistributeParallelForSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPDistributeParallelForSimdDirective(
                                                                  OMPDistributeParallelForSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPDistributeSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPDistributeSimdDirective(
                                                       OMPDistributeSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetParallelForSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetParallelForSimdDirective(
                                                              OMPTargetParallelForSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetSimdDirective(OMPTargetSimdDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTargetSimdDirective(OMPTargetSimdDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTeamsDistributeDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTeamsDistributeDirective(
                                                        OMPTeamsDistributeDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTeamsDistributeSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTeamsDistributeSimdDirective(
                                                            OMPTeamsDistributeSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTeamsDistributeParallelForSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTeamsDistributeParallelForSimdDirective(
                                                                       OMPTeamsDistributeParallelForSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTeamsDistributeParallelForDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTeamsDistributeParallelForDirective(
                                                                   OMPTeamsDistributeParallelForDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetTeamsDirective(OMPTargetTeamsDirective *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPTargetTeamsDirective(OMPTargetTeamsDirective *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetTeamsDistributeDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetTeamsDistributeDirective(
                                                              OMPTargetTeamsDistributeDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetTeamsDistributeParallelForDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetTeamsDistributeParallelForDirective(
                                                                         OMPTargetTeamsDistributeParallelForDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetTeamsDistributeParallelForSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetTeamsDistributeParallelForSimdDirective(
                                                                             OMPTargetTeamsDistributeParallelForSimdDirective *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPTargetTeamsDistributeSimdDirective(
+    StringRef PatchPragmaVisitor::GenerateOMPTargetTeamsDistributeSimdDirective(
                                                                  OMPTargetTeamsDistributeSimdDirective *Node) {
-        return true;
+        return "";
     }
     
     //===----------------------------------------------------------------------===//
     //  Expr printing methods.
     //===----------------------------------------------------------------------===//
     
-    bool PatchPragmaVisitor::VisitDeclRefExpr(DeclRefExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateDeclRefExpr(DeclRefExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitDependentScopeDeclRefExpr(
+    StringRef PatchPragmaVisitor::GenerateDependentScopeDeclRefExpr(
                                                      DependentScopeDeclRefExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitUnresolvedLookupExpr(UnresolvedLookupExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateUnresolvedLookupExpr(UnresolvedLookupExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCIvarRefExpr(ObjCIvarRefExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCIvarRefExpr(ObjCIvarRefExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCPropertyRefExpr(ObjCPropertyRefExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCPropertyRefExpr(ObjCPropertyRefExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCSubscriptRefExpr(ObjCSubscriptRefExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateObjCSubscriptRefExpr(ObjCSubscriptRefExpr *Node) {
         
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitPredefinedExpr(PredefinedExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GeneratePredefinedExpr(PredefinedExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCharacterLiteral(CharacterLiteral *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCharacterLiteral(CharacterLiteral *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitIntegerLiteral(IntegerLiteral *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateIntegerLiteral(IntegerLiteral *Node) {
+        return "";
     }
     
     
-    bool PatchPragmaVisitor::VisitFloatingLiteral(FloatingLiteral *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateFloatingLiteral(FloatingLiteral *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitImaginaryLiteral(ImaginaryLiteral *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateImaginaryLiteral(ImaginaryLiteral *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitStringLiteral(StringLiteral *Str) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateStringLiteral(StringLiteral *Str) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitParenExpr(ParenExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateParenExpr(ParenExpr *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitUnaryOperator(UnaryOperator *Node) {
-        return true;
-    }
-    
-    bool PatchPragmaVisitor::VisitOffsetOfExpr(OffsetOfExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateUnaryOperator(UnaryOperator *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr *Node){
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOffsetOfExpr(OffsetOfExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitGenericSelectionExpr(GenericSelectionExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr *Node){
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateGenericSelectionExpr(GenericSelectionExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOMPArraySectionExpr(OMPArraySectionExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateArraySubscriptExpr(ArraySubscriptExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCallExpr(CallExpr *Call) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOMPArraySectionExpr(OMPArraySectionExpr *Node) {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCallExpr(CallExpr *Call) {
+        return "";
     }
     
     static bool isImplicitThis(const Expr *E) {
@@ -502,252 +522,250 @@ namespace clang {
         return false;
     }
     
-    bool PatchPragmaVisitor::VisitMemberExpr(MemberExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateMemberExpr(MemberExpr *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitObjCIsaExpr(ObjCIsaExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCIsaExpr(ObjCIsaExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitExtVectorElementExpr(ExtVectorElementExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateExtVectorElementExpr(ExtVectorElementExpr *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitCStyleCastExpr(CStyleCastExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCStyleCastExpr(CStyleCastExpr *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitCompoundLiteralExpr(CompoundLiteralExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCompoundLiteralExpr(CompoundLiteralExpr *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitImplicitCastExpr(ImplicitCastExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateImplicitCastExpr(ImplicitCastExpr *Node) {
         // No need to print anything, simply forward to the subexpression.
-        return true;;
+        return "";;
     }
-    bool PatchPragmaVisitor::VisitBinaryOperator(BinaryOperator *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateBinaryOperator(BinaryOperator *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitCompoundAssignOperator(CompoundAssignOperator *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCompoundAssignOperator(CompoundAssignOperator *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitConditionalOperator(ConditionalOperator *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateConditionalOperator(ConditionalOperator *Node) {
+        return "";
     }
     
     // GNU extensions.
     
-    bool
-    PatchPragmaVisitor::VisitBinaryConditionalOperator(BinaryConditionalOperator *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateBinaryConditionalOperator(BinaryConditionalOperator *Node) {
+        return "";
     }
-    bool PatchPragmaVisitor::VisitAddrLabelExpr(AddrLabelExpr *Node) {
-        return true;
-    }
-    
-    bool PatchPragmaVisitor::VisitStmtExpr(StmtExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateAddrLabelExpr(AddrLabelExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitChooseExpr(ChooseExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateStmtExpr(StmtExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitGNUNullExpr(GNUNullExpr *) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateChooseExpr(ChooseExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitShuffleVectorExpr(ShuffleVectorExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateGNUNullExpr(GNUNullExpr *) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitConvertVectorExpr(ConvertVectorExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateShuffleVectorExpr(ShuffleVectorExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitInitListExpr(InitListExpr* Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateConvertVectorExpr(ConvertVectorExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitArrayInitLoopExpr(ArrayInitLoopExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateInitListExpr(InitListExpr* Node) {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateArrayInitLoopExpr(ArrayInitLoopExpr *Node) {
         // There's no way to express this expression in any of our supported
         // languages, so just emit something terse and (hopefully) clear.
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitArrayInitIndexExpr(ArrayInitIndexExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateArrayInitIndexExpr(ArrayInitIndexExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitParenListExpr(ParenListExpr* Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateParenListExpr(ParenListExpr* Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitDesignatedInitExpr(DesignatedInitExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateDesignatedInitExpr(DesignatedInitExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitDesignatedInitUpdateExpr(
+    StringRef PatchPragmaVisitor::GenerateDesignatedInitUpdateExpr(
                                                     DesignatedInitUpdateExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitNoInitExpr(NoInitExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateNoInitExpr(NoInitExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitImplicitValueInitExpr(ImplicitValueInitExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateImplicitValueInitExpr(ImplicitValueInitExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitVAArgExpr(VAArgExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateVAArgExpr(VAArgExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitPseudoObjectExpr(PseudoObjectExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GeneratePseudoObjectExpr(PseudoObjectExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitAtomicExpr(AtomicExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateAtomicExpr(AtomicExpr *Node) {
+        return "";
     }
     
     // C++
-    bool PatchPragmaVisitor::VisitCXXOperatorCallExpr(CXXOperatorCallExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXOperatorCallExpr(CXXOperatorCallExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateCXXMemberCallExpr(CXXMemberCallExpr *Node) {
         // If we have a conversion operator call only print the argument.
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCUDAKernelCallExpr(CUDAKernelCallExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCUDAKernelCallExpr(CUDAKernelCallExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXStaticCastExpr(CXXStaticCastExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXStaticCastExpr(CXXStaticCastExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXDynamicCastExpr(CXXDynamicCastExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXDynamicCastExpr(CXXDynamicCastExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXReinterpretCastExpr(CXXReinterpretCastExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXReinterpretCastExpr(CXXReinterpretCastExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXConstCastExpr(CXXConstCastExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXConstCastExpr(CXXConstCastExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXTypeidExpr(CXXTypeidExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXTypeidExpr(CXXTypeidExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXUuidofExpr(CXXUuidofExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXUuidofExpr(CXXUuidofExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitMSPropertyRefExpr(MSPropertyRefExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateMSPropertyRefExpr(MSPropertyRefExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitMSPropertySubscriptExpr(MSPropertySubscriptExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateMSPropertySubscriptExpr(MSPropertySubscriptExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitUserDefinedLiteral(UserDefinedLiteral *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateUserDefinedLiteral(UserDefinedLiteral *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXBoolLiteralExpr(CXXBoolLiteralExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXThisExpr(CXXThisExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXThisExpr(CXXThisExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXThrowExpr(CXXThrowExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXThrowExpr(CXXThrowExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXDefaultArgExpr(CXXDefaultArgExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateCXXDefaultArgExpr(CXXDefaultArgExpr *Node) {
         // Nothing to print: we picked up the default argument.
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXDefaultInitExpr(CXXDefaultInitExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateCXXDefaultInitExpr(CXXDefaultInitExpr *Node) {
         // Nothing to print: we picked up the default initializer.
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXFunctionalCastExpr(CXXFunctionalCastExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXFunctionalCastExpr(CXXFunctionalCastExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXBindTemporaryExpr(CXXBindTemporaryExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXBindTemporaryExpr(CXXBindTemporaryExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXTemporaryObjectExpr(CXXTemporaryObjectExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitLambdaExpr(LambdaExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateLambdaExpr(LambdaExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXScalarValueInitExpr(CXXScalarValueInitExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXScalarValueInitExpr(CXXScalarValueInitExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXNewExpr(CXXNewExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXNewExpr(CXXNewExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXDeleteExpr(CXXDeleteExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXDeleteExpr(CXXDeleteExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXPseudoDestructorExpr(CXXPseudoDestructorExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXPseudoDestructorExpr(CXXPseudoDestructorExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXConstructExpr(CXXConstructExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXConstructExpr(CXXConstructExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXInheritedCtorInitExpr(CXXInheritedCtorInitExpr *E) {
+    StringRef PatchPragmaVisitor::GenerateCXXInheritedCtorInitExpr(CXXInheritedCtorInitExpr *E) {
         // Parens are printed by the surrounding context.
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXStdInitializerListExpr(CXXStdInitializerListExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXStdInitializerListExpr(CXXStdInitializerListExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitExprWithCleanups(ExprWithCleanups *E) {
+    StringRef PatchPragmaVisitor::GenerateExprWithCleanups(ExprWithCleanups *E) {
         // Just forward to the subexpression.
-        return true;
+        return "";
     }
     
-    bool
-    PatchPragmaVisitor::VisitCXXUnresolvedConstructExpr(
+    StringRef PatchPragmaVisitor::GenerateCXXUnresolvedConstructExpr(
                                                  CXXUnresolvedConstructExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXDependentScopeMemberExpr(
+    StringRef PatchPragmaVisitor::GenerateCXXDependentScopeMemberExpr(
                                                        CXXDependentScopeMemberExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitUnresolvedMemberExpr(UnresolvedMemberExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateUnresolvedMemberExpr(UnresolvedMemberExpr *Node) {
+        return "";
     }
     
     static const char *getTypeTraitName(TypeTrait TT) {
@@ -763,143 +781,141 @@ case clang::TT_##Name: return #Spelling;
         llvm_unreachable("Type trait not covered by switch");
     }
     
-    bool PatchPragmaVisitor::VisitTypeTraitExpr(TypeTraitExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateTypeTraitExpr(TypeTraitExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitArrayTypeTraitExpr(ArrayTypeTraitExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateArrayTypeTraitExpr(ArrayTypeTraitExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitExpressionTraitExpr(ExpressionTraitExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateExpressionTraitExpr(ExpressionTraitExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXNoexceptExpr(CXXNoexceptExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXNoexceptExpr(CXXNoexceptExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitPackExpansionExpr(PackExpansionExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GeneratePackExpansionExpr(PackExpansionExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSizeOfPackExpr(SizeOfPackExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateSizeOfPackExpr(SizeOfPackExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSubstNonTypeTemplateParmPackExpr(
+    StringRef PatchPragmaVisitor::GenerateSubstNonTypeTemplateParmPackExpr(
                                                             SubstNonTypeTemplateParmPackExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitSubstNonTypeTemplateParmExpr(
+    StringRef PatchPragmaVisitor::GenerateSubstNonTypeTemplateParmExpr(
                                                         SubstNonTypeTemplateParmExpr *Node) {
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitFunctionParmPackExpr(FunctionParmPackExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateFunctionParmPackExpr(FunctionParmPackExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitMaterializeTemporaryExpr(MaterializeTemporaryExpr *Node){
-        return true;
+    StringRef PatchPragmaVisitor::GenerateMaterializeTemporaryExpr(MaterializeTemporaryExpr *Node){
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCXXFoldExpr(CXXFoldExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCXXFoldExpr(CXXFoldExpr *E) {
+        return "";
     }
     
     // C++ Coroutines TS
     
-    bool PatchPragmaVisitor::VisitCoroutineBodyStmt(CoroutineBodyStmt *S) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCoroutineBodyStmt(CoroutineBodyStmt *S) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCoreturnStmt(CoreturnStmt *S) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCoreturnStmt(CoreturnStmt *S) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitCoawaitExpr(CoawaitExpr *S) {
-        return true;
-    }
-    
-    
-    bool PatchPragmaVisitor::VisitDependentCoawaitExpr(DependentCoawaitExpr *S) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateCoawaitExpr(CoawaitExpr *S) {
+        return "";
     }
     
     
-    bool PatchPragmaVisitor::VisitCoyieldExpr(CoyieldExpr *S) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateDependentCoawaitExpr(DependentCoawaitExpr *S) {
+        return "";
+    }
+    
+    
+    StringRef PatchPragmaVisitor::GenerateCoyieldExpr(CoyieldExpr *S) {
+        return "";
     }
     
     // Obj-C
     
-    bool PatchPragmaVisitor::VisitObjCStringLiteral(ObjCStringLiteral *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCStringLiteral(ObjCStringLiteral *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCBoxedExpr(ObjCBoxedExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCBoxedExpr(ObjCBoxedExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCArrayLiteral(ObjCArrayLiteral *E) {
-       return true;
+    StringRef PatchPragmaVisitor::GenerateObjCArrayLiteral(ObjCArrayLiteral *E) {
+       return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCDictionaryLiteral(ObjCDictionaryLiteral *E) {
-       return true;
+    StringRef PatchPragmaVisitor::GenerateObjCDictionaryLiteral(ObjCDictionaryLiteral *E) {
+       return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCEncodeExpr(ObjCEncodeExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCEncodeExpr(ObjCEncodeExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCSelectorExpr(ObjCSelectorExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCSelectorExpr(ObjCSelectorExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCProtocolExpr(ObjCProtocolExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCProtocolExpr(ObjCProtocolExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCMessageExpr(ObjCMessageExpr *Mess) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCMessageExpr(ObjCMessageExpr *Mess) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitObjCBoolLiteralExpr(ObjCBoolLiteralExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCBoolLiteralExpr(ObjCBoolLiteralExpr *Node) {
+        return "";
     }
     
-    bool
-    PatchPragmaVisitor::VisitObjCIndirectCopyRestoreExpr(ObjCIndirectCopyRestoreExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCIndirectCopyRestoreExpr(ObjCIndirectCopyRestoreExpr *E) {
+        return "";
     }
     
-    bool
-    PatchPragmaVisitor::VisitObjCBridgedCastExpr(ObjCBridgedCastExpr *E) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateObjCBridgedCastExpr(ObjCBridgedCastExpr *E) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitBlockExpr(BlockExpr *Node) {
+    StringRef PatchPragmaVisitor::GenerateBlockExpr(BlockExpr *Node) {
         Stmt* body = Node->getBody();
         for (Stmt::child_iterator it = body->child_begin(); it != body->child_end(); ++it) {
-            (*it)->printPretty(llvm::errs(), NULL, Context.getPrintingPolicy());
-            llvm::errs()<< "\n";
+            //(*it)->printPretty(llvm::errs(), NULL, Context.getPrintingPolicy());
+            //llvm::errs()<< "\n";
         }
-        return true;
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitOpaqueValueExpr(OpaqueValueExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateOpaqueValueExpr(OpaqueValueExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitTypoExpr(TypoExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateTypoExpr(TypoExpr *Node) {
+        return "";
     }
     
-    bool PatchPragmaVisitor::VisitAsTypeExpr(AsTypeExpr *Node) {
-        return true;
+    StringRef PatchPragmaVisitor::GenerateAsTypeExpr(AsTypeExpr *Node) {
+        return "";
     }
     
 }
