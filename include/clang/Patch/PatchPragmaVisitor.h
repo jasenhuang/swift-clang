@@ -47,12 +47,13 @@ StringRef Generate##CLASS(CLASS *S, unsigned Indent);
         bool VisitObjCMethodDecl(ObjCMethodDecl *D);
         
         StringRef GenerateStmtPatch(Stmt *S, unsigned Indent);
-/*
+
  #define ABSTRACT_DECL(DECL)
- #define DECL(CLASS, BASE)  \
- bool Visit##CLASS##Decl(CLASS##Decl *D);
+ #define DECL(TYPE, BASE)  \
+ StringRef Generate##TYPE##Decl(TYPE##Decl *D, unsigned Indent);
  #include "clang/AST/DeclNodes.inc"
- */
+        
+        StringRef GenerateDeclPatch(Decl *D, unsigned Indent);
     };
    
 }
