@@ -80,7 +80,298 @@ break;
     }
     
 #pragma mark - decl
+    StringRef PatchPragmaVisitor::GenerateAccessSpecDecl(AccessSpecDecl*, unsigned int Indent)  {
+        return "";
+    }
     
+    StringRef PatchPragmaVisitor::GenerateCapturedDecl(CapturedDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateClassScopeFunctionSpecializationDecl(ClassScopeFunctionSpecializationDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateEmptyDecl(EmptyDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateImportDecl(ImportDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateNamespaceAliasDecl(NamespaceAliasDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCCategoryImplDecl(ObjCCategoryImplDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCCompatibleAliasDecl(ObjCCompatibleAliasDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCPropertyDecl(ObjCPropertyDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCMethodDecl(ObjCMethodDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateBuiltinTemplateDecl(BuiltinTemplateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateFunctionTemplateDecl(FunctionTemplateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateTypeAliasDecl(TypeAliasDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateVarTemplateDecl(VarTemplateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCXXRecordDecl(CXXRecordDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateTemplateTemplateParmDecl(TemplateTemplateParmDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateTypeAliasTemplateDecl(TypeAliasTemplateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateEnumDecl(EnumDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateFieldDecl(FieldDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateRecordDecl(RecordDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateClassTemplatePartialSpecializationDecl(ClassTemplatePartialSpecializationDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateConstructorUsingShadowDecl(ConstructorUsingShadowDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCTypeParamDecl(ObjCTypeParamDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateLabelDecl(LabelDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateTypedefDecl(TypedefDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateVarDecl(VarDecl* D, unsigned int Indent)  {
+        
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCImplementationDecl(ObjCImplementationDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateClassTemplateDecl(ClassTemplateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateUsingDecl(UsingDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateBlockDecl(BlockDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateUsingDirectiveDecl(UsingDirectiveDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateExportDecl(ExportDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateUsingPackDecl(UsingPackDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCProtocolDecl(ObjCProtocolDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateTranslationUnitDecl(TranslationUnitDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCAtDefsFieldDecl(ObjCAtDefsFieldDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateFunctionDecl(FunctionDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCCategoryDecl(ObjCCategoryDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateBindingDecl(BindingDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateIndirectFieldDecl(IndirectFieldDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCIvarDecl(ObjCIvarDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCXXDeductionGuideDecl(CXXDeductionGuideDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateNamespaceDecl(NamespaceDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateVarTemplatePartialSpecializationDecl(VarTemplatePartialSpecializationDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateImplicitParamDecl(ImplicitParamDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCXXMethodDecl(CXXMethodDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCInterfaceDecl(ObjCInterfaceDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCXXDestructorDecl(CXXDestructorDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateFileScopeAsmDecl(FileScopeAsmDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCXXConversionDecl(CXXConversionDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateNonTypeTemplateParmDecl(NonTypeTemplateParmDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateUnresolvedUsingValueDecl(UnresolvedUsingValueDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateVarTemplateSpecializationDecl(VarTemplateSpecializationDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateExternCContextDecl(ExternCContextDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateDecompositionDecl(DecompositionDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateOMPCapturedExprDecl(OMPCapturedExprDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateCXXConstructorDecl(CXXConstructorDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateEnumConstantDecl(EnumConstantDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateLinkageSpecDecl(LinkageSpecDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateObjCPropertyImplDecl(ObjCPropertyImplDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateStaticAssertDecl(StaticAssertDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateParmVarDecl(ParmVarDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateUsingShadowDecl(UsingShadowDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateOMPDeclareReductionDecl(OMPDeclareReductionDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateTemplateTypeParmDecl(TemplateTypeParmDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateFriendDecl(FriendDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GeneratePragmaDetectMismatchDecl(PragmaDetectMismatchDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateFriendTemplateDecl(FriendTemplateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateOMPThreadPrivateDecl(OMPThreadPrivateDecl*, unsigned int Indent)  {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GenerateMSPropertyDecl(MSPropertyDecl*, unsigned int Indent) {
+        return "";
+    }
+    
+    StringRef PatchPragmaVisitor::GeneratePragmaCommentDecl(PragmaCommentDecl*, unsigned int Indent) {
+        return "";
+    }
     
 #pragma mark - stmt
     
@@ -91,7 +382,7 @@ break;
     StringRef PatchPragmaVisitor::GenerateDeclStmt(DeclStmt *Node, unsigned Indent) {
         std::string content;
         for (DeclStmt::decl_iterator it = Node->decl_begin(); it != Node->decl_end(); ++it) {
-            (*it)->print(OS, Context.getPrintingPolicy());
+            GenerateDeclPatch((*it), Indent);
         }
         return content;
     }
