@@ -35,7 +35,7 @@ namespace clang {
         
 #define ABSTRACT_STMT(STMT)
 #define STMT(CLASS, PARENT) \
-StringRef Generate##CLASS(CLASS *S);
+StringRef Generate##CLASS(CLASS *S, unsigned Indent);
 #include "clang/AST/StmtNodes.inc"
   
         bool shouldTraversePostOrder() const;
@@ -46,7 +46,7 @@ StringRef Generate##CLASS(CLASS *S);
         
         bool VisitObjCMethodDecl(ObjCMethodDecl *D);
         
-        StringRef GenerateStmtPatch(Stmt *S);
+        StringRef GenerateStmtPatch(Stmt *S, unsigned Indent);
 /*
  #define ABSTRACT_DECL(DECL)
  #define DECL(CLASS, BASE)  \
