@@ -33,18 +33,18 @@ namespace clang {
     
 #pragma mark - Objc Decl
     bool PatchPragmaVisitor::VisitObjCInterfaceDecl(ObjCInterfaceDecl* D) {
-        if (!D->hasAttr<PatchAttr>()) return true;
+        //if (!D->hasAttr<PatchAttr>()) return true;
         return true;
     }
 
     bool PatchPragmaVisitor::VisitObjCProtocolDecl(ObjCProtocolDecl* D) {
-        if (!D->hasAttr<PatchAttr>()) return true;
+        //if (!D->hasAttr<PatchAttr>()) return true;
         return true;
     }
 
     bool PatchPragmaVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
-        if (!D->hasAttr<PatchAttr>()) return true;
-        OS<< GenerateStmtPatch(D->getBody(), 0);
+        //if (!D->hasAttr<PatchAttr>()) return true;
+        //OS<< GenerateStmtPatch(D->getBody(), 0);
         return true;
     }
     

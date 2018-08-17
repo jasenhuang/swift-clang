@@ -662,7 +662,7 @@ void Sema::AddPragmaPatch(Scope *S, Decl *D) {
     
     for (const AttributeList* l = Entry.Attribute; l; l = l->getNext()) {
         D->addAttr(::new (Context)
-                   PatchAttr(l->getRange(), Context, l->getName()->getName(),
+                   AnnotateAttr(l->getRange(), Context, l->getName()->getName(),
                              l->getAttributeSpellingListIndex()));
     }
 }
