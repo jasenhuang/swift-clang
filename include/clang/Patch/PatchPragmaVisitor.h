@@ -54,6 +54,8 @@ StringRef Generate##CLASS(CLASS *S, unsigned Indent);
  #include "clang/AST/DeclNodes.inc"
         
         StringRef GenerateDeclPatch(Decl *D, unsigned Indent);
+        
+        StringRef GenerateSelector(Selector S, unsigned Indent);
     };
    
 }

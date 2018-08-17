@@ -28,7 +28,7 @@ namespace clang {
     
 #pragma mark - post order
     bool PatchPragmaVisitor::shouldTraversePostOrder() const {
-        return true;
+        return false;
     }
     
 #pragma mark - Objc Decl
@@ -44,10 +44,7 @@ namespace clang {
 
     bool PatchPragmaVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
         if (!D->hasAttr<PatchAttr>()) return true;
-        PatchAttr* attr = D->getAttr<PatchAttr>();
-        OS<< D->getNameAsString() <<" " << attr->getPatchVersion() << "\n";
         OS<< GenerateStmtPatch(D->getBody(), 0);
-        
         return true;
     }
     
@@ -172,8 +169,8 @@ break;
         return "";
     }
     
-    StringRef PatchPragmaVisitor::GenerateLabelDecl(LabelDecl*, unsigned int Indent)  {
-        return "";
+    StringRef PatchPragmaVisitor::GenerateLabelDecl(LabelDecl* D, unsigned int Indent)  {
+        return GenerateStmtPatch(D->getStmt(), Indent);
     }
     
     StringRef PatchPragmaVisitor::GenerateTypedefDecl(TypedefDecl*, unsigned int Indent)  {
@@ -181,8 +178,14 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GenerateVarDecl(VarDecl* D, unsigned int Indent)  {
-        
-        return "";
+        std::string content;
+        content += "var ";
+        content += D->getName();
+        if (D->hasInit()){
+            content += " = ";
+            content += GenerateStmtPatch(D->getInit(), Indent);
+        }
+        return content;
     }
     
     StringRef PatchPragmaVisitor::GenerateUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl*, unsigned int Indent)  {
@@ -201,7 +204,8 @@ break;
         return "";
     }
     
-    StringRef PatchPragmaVisitor::GenerateBlockDecl(BlockDecl*, unsigned int Indent)  {
+    StringRef PatchPragmaVisitor::GenerateBlockDecl(BlockDecl* B, unsigned int Indent)  {
+        //B->print(OS);
         return "";
     }
     
@@ -233,7 +237,7 @@ break;
         return "";
     }
     
-    StringRef PatchPragmaVisitor::GenerateObjCCategoryDecl(ObjCCategoryDecl*, unsigned int Indent)  {
+    StringRef PatchPragmaVisitor::GenerateObjCCategoryDecl(ObjCCategoryDecl* D, unsigned int Indent)  {
         return "";
     }
     
@@ -382,7 +386,7 @@ break;
     StringRef PatchPragmaVisitor::GenerateDeclStmt(DeclStmt *Node, unsigned Indent) {
         std::string content;
         for (DeclStmt::decl_iterator it = Node->decl_begin(); it != Node->decl_end(); ++it) {
-            GenerateDeclPatch((*it), Indent);
+            content += GenerateDeclPatch((*it), Indent);
         }
         return content;
     }
@@ -392,9 +396,6 @@ break;
         for (CompoundStmt::body_iterator it = Node->body_begin(); it != Node->body_end(); ++it) {
             IndentTab(content, Indent);
             content += GenerateStmtPatch(*it, Indent);
-            content += (*it)->getStmtClassName();
-            //llvm::raw_string_ostream sos(content);
-            //(*it)->printPretty(sos, NULL, Context.getPrintingPolicy());
             content += "\n";
         }
         return content;
@@ -409,7 +410,13 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GenerateLabelStmt(LabelStmt *Node, unsigned Indent) {
-        return "";
+        std::string content;
+        IndentTab(content, Indent);
+        content += "function (){\n";
+        content += GenerateStmtPatch(Node->getSubStmt(), Indent + 1);
+        IndentTab(content, Indent);
+        content += "}";
+        return content;
     }
     
     StringRef PatchPragmaVisitor::GenerateAttributedStmt(AttributedStmt *Node, unsigned Indent) {
@@ -417,7 +424,7 @@ break;
     }
 
     StringRef PatchPragmaVisitor::GenerateIfStmt(IfStmt *If, unsigned Indent) {
-        
+        std::string content;
         return "";
     }
     
@@ -467,7 +474,11 @@ break;
     
     
     StringRef PatchPragmaVisitor::GenerateReturnStmt(ReturnStmt *Node, unsigned Indent) {
-        return "";
+        std::string content;
+        IndentTab(content, Indent);
+        content += "return ";
+        content += GenerateStmtPatch(Node->getRetValue(), 0);
+        return content;
     }
     
     
@@ -781,16 +792,19 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GenerateCharacterLiteral(CharacterLiteral *Node, unsigned Indent) {
-        return "";
+        SmallString<3> value;
+        value += '\'' + (char)Node->getValue() + '\'';
+        return value;
     }
     
     StringRef PatchPragmaVisitor::GenerateIntegerLiteral(IntegerLiteral *Node, unsigned Indent) {
-        return "";
+        return Node->getValue().toString(10, true);
     }
     
-    
     StringRef PatchPragmaVisitor::GenerateFloatingLiteral(FloatingLiteral *Node, unsigned Indent) {
-        return "";
+        SmallString<10> value;
+        Node->getValue().toString(value);
+        return value;
     }
     
     StringRef PatchPragmaVisitor::GenerateImaginaryLiteral(ImaginaryLiteral *Node, unsigned Indent) {
@@ -798,11 +812,17 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GenerateStringLiteral(StringLiteral *Str, unsigned Indent) {
-        return "";
+        std::string str;
+        str += '\'';
+        str += Str->getString();
+        str += '\'';
+        return str;
     }
+    
     StringRef PatchPragmaVisitor::GenerateParenExpr(ParenExpr *Node, unsigned Indent) {
         return "";
     }
+    
     StringRef PatchPragmaVisitor::GenerateUnaryOperator(UnaryOperator *Node, unsigned Indent) {
         return "";
     }
@@ -820,7 +840,12 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GenerateArraySubscriptExpr(ArraySubscriptExpr *Node, unsigned Indent) {
-        return "";
+        std::string content;
+        content += GenerateStmtPatch(Node->getBase(), 0);
+        content += '[';
+        content += GenerateStmtPatch(Node->getIdx(), 0);
+        content += ']';
+        return content;
     }
     
     StringRef PatchPragmaVisitor::GenerateOMPArraySectionExpr(OMPArraySectionExpr *Node, unsigned Indent) {
@@ -828,6 +853,7 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GenerateCallExpr(CallExpr *Call, unsigned Indent) {
+        Call->printPretty(OS, NULL, Context.getPrintingPolicy());
         return "";
     }
     
@@ -855,7 +881,7 @@ break;
     }
     StringRef PatchPragmaVisitor::GenerateImplicitCastExpr(ImplicitCastExpr *Node, unsigned Indent) {
         // No need to print anything, simply forward to the subexpression.
-        return "";;
+        return GenerateStmtPatch(Node->getSubExpr(), Indent);
     }
     StringRef PatchPragmaVisitor::GenerateBinaryOperator(BinaryOperator *Node, unsigned Indent) {
         return "";
@@ -936,7 +962,7 @@ break;
     }
     
     StringRef PatchPragmaVisitor::GeneratePseudoObjectExpr(PseudoObjectExpr *Node, unsigned Indent) {
-        return "";
+        return GenerateStmtPatch(Node->getResultExpr(), Indent);
     }
     
     StringRef PatchPragmaVisitor::GenerateAtomicExpr(AtomicExpr *Node, unsigned Indent) {
@@ -1169,14 +1195,11 @@ case clang::TT_##Name: return #Spelling;
     // Obj-C
     
     StringRef PatchPragmaVisitor::GenerateObjCStringLiteral(ObjCStringLiteral *Node, unsigned Indent) {
-        std::string content;
-        
-        
-        return content;
+        return GenerateStmtPatch(Node->getString(), Indent);
     }
     
     StringRef PatchPragmaVisitor::GenerateObjCBoxedExpr(ObjCBoxedExpr *E, unsigned Indent) {
-        return "";
+        return GenerateStmtPatch(E->getSubExpr(), Indent);
     }
     
     StringRef PatchPragmaVisitor::GenerateObjCArrayLiteral(ObjCArrayLiteral *E, unsigned Indent) {
@@ -1221,23 +1244,32 @@ case clang::TT_##Name: return #Spelling;
         return "";
     }
     
+    StringRef PatchPragmaVisitor::GenerateSelector(Selector S, unsigned Indent) {
+        std::string content;
+        return content;
+    }
+    
     StringRef PatchPragmaVisitor::GenerateObjCMessageExpr(ObjCMessageExpr *Mess, unsigned Indent) {
-        //Mess->printPretty(OS, NULL, Context.getPrintingPolicy());
-        switch (Mess->getReceiverKind()) {
-            case ObjCMessageExpr::Class:
-                
-                break;
-            case ObjCMessageExpr::Instance:
-                
-                break;
-            default:
-                break;
+        std::string content;
+        if (Mess->isClassMessage()) {
+            content += Mess->getClassReceiver().getAsString();
+            
+        }else if (Mess->isInstanceMessage()) {
+            content += GenerateStmtPatch(Mess->getInstanceReceiver(), 0);
         }
-        return "";
+        content += '.';
+        content += GenerateSelector(Mess->getSelector(), 0);
+        content += '(';
+        for (unsigned i = 0; i < Mess->getNumArgs(); ++i) {
+            if (i > 0) content += ", ";
+            content += GenerateStmtPatch(Mess->getArg(i), 0);
+        }
+        content += ')';
+        return content;
     }
     
     StringRef PatchPragmaVisitor::GenerateObjCBoolLiteralExpr(ObjCBoolLiteralExpr *Node, unsigned Indent) {
-        return "";
+        return Node->getValue() ? "true" : "false";
     }
     
     StringRef PatchPragmaVisitor::GenerateObjCIndirectCopyRestoreExpr(ObjCIndirectCopyRestoreExpr *E, unsigned Indent) {
