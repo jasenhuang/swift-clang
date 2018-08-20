@@ -501,11 +501,11 @@ public:
   SmallVector<PragmaAttributeEntry, 2> PragmaAttributeStack;
   
   /// \#pragma clang patch.
-  struct PragmaPatchEntry {
+  struct PragmaObfuscateEntry {
     SourceLocation Loc;
     AttributeList *Attribute;
   };
-  SmallVector<PragmaPatchEntry, 2> PragmaPatchStack;
+  SmallVector<PragmaObfuscateEntry, 2> PragmaObfuscateStack;
 
   /// \brief The declaration that is currently receiving an attribute from the
   /// #pragma attribute stack.
@@ -8464,10 +8464,10 @@ public:
   void ActOnPragmaAttributePop(SourceLocation PragmaLoc);
     
   /// \brief Called on well-formed '\#pragma clang patch begin'.
-  void ActOnPragmaPatchPush(AttributeList &Attribute, SourceLocation PragmaLoc);
+  void ActOnPragmaObfuscatePush(AttributeList &Attribute, SourceLocation PragmaLoc);
 
   /// \brief Called on well-formed '\#pragma clang patch end'.
-  void ActOnPragmaPatchPop(SourceLocation PragmaLoc);
+  void ActOnPragmaObfuscatePop(SourceLocation PragmaLoc);
 
   /// \brief Adds the attributes that have been specified using the
   /// '\#pragma clang attribute push' directives to the given declaration.

@@ -713,7 +713,7 @@ ANNOTATION(decltype)     // annotation for a decltype expression,
 ANNOTATION(pragma_unused)
 
 // Annotation for #pragma patch
-ANNOTATION(pragma_patch)
+ANNOTATION(pragma_obfuscate)
 
 // Annotation for #pragma GCC visibility...
 // The lexer produces these so that they only take effect when the parser

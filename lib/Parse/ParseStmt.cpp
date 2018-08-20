@@ -311,9 +311,9 @@ Retry:
     HandlePragmaPack();
     return StmtEmpty();
         
-  case tok::annot_pragma_patch:
+  case tok::annot_pragma_obfuscate:
     ProhibitAttributes(Attrs);
-    HandlePragmaPatch();
+    HandlePragmaObfuscate();
     return StmtEmpty();
 
   case tok::annot_pragma_msstruct:

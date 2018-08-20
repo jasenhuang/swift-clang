@@ -642,23 +642,23 @@ void Sema::ActOnPragmaAttributePop(SourceLocation PragmaLoc) {
 }
 
 //Patch
-void Sema::ActOnPragmaPatchPush(AttributeList &Attribute, SourceLocation PragmaLoc) {
-    PragmaPatchEntry Entry({PragmaLoc, &Attribute});
-    PragmaPatchStack.push_back(Entry);
+void Sema::ActOnPragmaObfuscatePush(AttributeList &Attribute, SourceLocation PragmaLoc) {
+    PragmaObfuscateEntry Entry({PragmaLoc, &Attribute});
+    PragmaObfuscateStack.push_back(Entry);
 }
-void Sema::ActOnPragmaPatchPop(SourceLocation PragmaLoc) {
-    if (PragmaPatchStack.empty()) {
+void Sema::ActOnPragmaObfuscatePop(SourceLocation PragmaLoc) {
+    if (PragmaObfuscateStack.empty()) {
         Diag(PragmaLoc, diag::err_pragma_attribute_stack_mismatch);
         return;
     }
-    //const PragmaPatchEntry &Entry = PragmaPatchStack.back();
-    PragmaPatchStack.pop_back();
+    //const PragmaObfuscateEntry &Entry = PragmaObfuscateStack.back();
+    PragmaObfuscateStack.pop_back();
 }
 
 void Sema::AddPragmaPatch(Scope *S, Decl *D) {
-    if (PragmaPatchStack.empty()) return ;
+    if (PragmaObfuscateStack.empty()) return ;
     
-    PragmaPatchEntry &Entry = PragmaPatchStack.back();
+    PragmaObfuscateEntry &Entry = PragmaObfuscateStack.back();
     
     for (const AttributeList* l = Entry.Attribute; l; l = l->getNext()) {
         D->addAttr(::new (Context)

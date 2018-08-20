@@ -75,7 +75,7 @@ public:
       }
       
       Tok.startToken();
-      Tok.setKind(tok::annot_pragma_patch);
+      Tok.setKind(tok::annot_pragma_obfuscate);
       Tok.setLocation(PragmaTok.getLocation().getLocWithOffset(1));
       Tok.setAnnotationEndLoc(PragmaTok.getLocation());
       Tok.setAnnotationValue(strdup("unused"));

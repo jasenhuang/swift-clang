@@ -39,9 +39,9 @@ struct PragmaGCCVisibilityHandler : public PragmaHandler {
                     Token &FirstToken) override;
 };
     
-struct PragmaPatchHandler : public PragmaHandler {
-    explicit PragmaPatchHandler(AttributeFactory &AttrFactory)
-    : PragmaHandler("patch"),AttributesForPragmaAttribute(AttrFactory) {}
+struct PragmaObfuscateHandler : public PragmaHandler {
+    explicit PragmaObfuscateHandler(AttributeFactory &AttrFactory)
+    : PragmaHandler("obfuscate"),AttributesForPragmaAttribute(AttrFactory) {}
     void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
                       Token &FirstToken) override;
     /// A pool of attributes that were parsed in \#pragma clang attribute.
@@ -276,8 +276,8 @@ void Parser::initializePragmaHandlers() {
   WeakHandler.reset(new PragmaWeakHandler());
   PP.AddPragmaHandler(WeakHandler.get());
     
-  PatchHandler.reset(new PragmaPatchHandler(AttrFactory));
-  PP.AddPragmaHandler("clang", PatchHandler.get());
+  ObfuscateHandler.reset(new PragmaObfuscateHandler(AttrFactory));
+  PP.AddPragmaHandler(ObfuscateHandler.get());
 
   RedefineExtnameHandler.reset(new PragmaRedefineExtnameHandler());
   PP.AddPragmaHandler(RedefineExtnameHandler.get());
@@ -380,8 +380,8 @@ void Parser::resetPragmaHandlers() {
   UnusedHandler.reset();
   PP.RemovePragmaHandler(WeakHandler.get());
   WeakHandler.reset();
-  PP.RemovePragmaHandler("clang", PatchHandler.get());
-  PatchHandler.reset();
+  PP.RemovePragmaHandler("clang", ObfuscateHandler.get());
+  ObfuscateHandler.reset();
   PP.RemovePragmaHandler(RedefineExtnameHandler.get());
   RedefineExtnameHandler.reset();
 
@@ -1496,21 +1496,21 @@ void Parser::HandlePragmaAttribute() {
 }
 
 namespace {
-    struct PragmaPatchInfo {
+    struct PragmaObfuscateInfo {
         enum ActionType { Begin, End };
         ActionType Action;
         ArrayRef<Token> Tokens;
         ParsedAttributes &Attributes;
-        PragmaPatchInfo(ParsedAttributes &Attributes) : Attributes(Attributes){}
+        PragmaObfuscateInfo(ParsedAttributes &Attributes) : Attributes(Attributes){}
     };
 } // end anonymous namespace
 
-void Parser::HandlePragmaPatch() {
-    assert(Tok.is(tok::annot_pragma_patch) &&
+void Parser::HandlePragmaObfuscate() {
+    assert(Tok.is(tok::annot_pragma_obfuscate) &&
            "Expected #pragma attribute annotation patch token");
     SourceLocation PragmaLoc = Tok.getLocation();
 
-    PragmaPatchInfo *Info = static_cast<PragmaPatchInfo *>(Tok.getAnnotationValue());
+    PragmaObfuscateInfo *Info = static_cast<PragmaObfuscateInfo *>(Tok.getAnnotationValue());
     ParsedAttributes &Attrs = Info->Attributes;
     Attrs.clearListOnly();
     
@@ -1523,10 +1523,10 @@ void Parser::HandlePragmaPatch() {
     AttributeList &Attribute = *Attrs.getList();
     
     ConsumeAnnotationToken();
-    if (Info->Action == PragmaPatchInfo::End) {
-        Actions.ActOnPragmaPatchPop(PragmaLoc);
+    if (Info->Action == PragmaObfuscateInfo::End) {
+        Actions.ActOnPragmaObfuscatePop(PragmaLoc);
     }else{
-        Actions.ActOnPragmaPatchPush(Attribute, PragmaLoc);
+        Actions.ActOnPragmaObfuscatePush(Attribute, PragmaLoc);
     }
 }
 
@@ -1951,7 +1951,7 @@ void PragmaUnusedHandler::HandlePragma(Preprocessor &PP,
   PP.EnterTokenStream(Toks, /*DisableMacroExpansion=*/true);
 }
 
-void PragmaPatchHandler::HandlePragma(clang::Preprocessor &PP,
+void PragmaObfuscateHandler::HandlePragma(clang::Preprocessor &PP,
                                       clang::PragmaIntroducerKind Introducer,
                                       clang::Token &PatchToken) {
     SourceLocation PatchLoc = PatchToken.getLocation();
@@ -1960,13 +1960,13 @@ void PragmaPatchHandler::HandlePragma(clang::Preprocessor &PP,
     PP.LexUnexpandedToken(Tok);
     
     auto *Info = new (PP.getPreprocessorAllocator())
-                        PragmaPatchInfo(AttributesForPragmaAttribute);
+                        PragmaObfuscateInfo(AttributesForPragmaAttribute);
     
     const IdentifierInfo *BeginEnd = Tok.getIdentifierInfo();
     if (BeginEnd && BeginEnd->isStr("begin")) {
-        Info->Action = PragmaPatchInfo::Begin;
+        Info->Action = PragmaObfuscateInfo::Begin;
     } else if (BeginEnd && BeginEnd->isStr("end")) {
-        Info->Action = PragmaPatchInfo::End;
+        Info->Action = PragmaObfuscateInfo::End;
     } else {
         PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier)
         << "patch";
@@ -1979,7 +1979,7 @@ void PragmaPatchHandler::HandlePragma(clang::Preprocessor &PP,
     tok.startToken();
     tok.setLocation(Tok.getLocation());
     tok.setKind(tok::identifier);
-    auto &II = PP.getIdentifierTable().get("default");
+    auto &II = PP.getIdentifierTable().get("obfuscate");
     tok.setIdentifierInfo(&II);
     AttributeTokens.push_back(tok);
     
@@ -1995,7 +1995,7 @@ void PragmaPatchHandler::HandlePragma(clang::Preprocessor &PP,
     
     MutableArrayRef<Token> Toks(PP.getPreprocessorAllocator().Allocate<Token>(1), 1);
     Toks[0].startToken();
-    Toks[0].setKind(tok::annot_pragma_patch);
+    Toks[0].setKind(tok::annot_pragma_obfuscate);
     Toks[0].setLocation(PatchLoc);
     Toks[0].setAnnotationEndLoc(EndLoc);
     Toks[0].setAnnotationValue(static_cast<void*>(Info));

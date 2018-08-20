@@ -595,8 +595,8 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result) {
     HandlePragmaAttribute();
     return false;
   
-  case tok::annot_pragma_patch:
-    HandlePragmaPatch();
+  case tok::annot_pragma_obfuscate:
+    HandlePragmaObfuscate();
     return false;
 
   case tok::eof:
@@ -667,8 +667,8 @@ Parser::ParseExternalDeclaration(ParsedAttributesWithRange &attrs,
   case tok::annot_pragma_pack:
     HandlePragmaPack();
     return nullptr;
-  case tok::annot_pragma_patch:
-    HandlePragmaPatch();
+  case tok::annot_pragma_obfuscate:
+    HandlePragmaObfuscate();
     return nullptr;
   case tok::annot_pragma_msstruct:
     HandlePragmaMSStruct();
