@@ -10,7 +10,7 @@ if( NOT MSVC ) # MSVC mangles symbols differently, and
 endif()
 
 add_llvm_loadable_module(Obfuscate 
-ObfuscatePragma.cpp 
+Obfuscate.cpp 
 ObfuscateVisitor.cpp
 PLUGIN_TOOL clang)
 

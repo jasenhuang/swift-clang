@@ -19,27 +19,35 @@
 #include "clang/Basic/SourceLocation.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/ADT/StringMap.h"
 
 namespace clang {
     
     class ObfuscateVisitor : public RecursiveASTVisitor<ObfuscateVisitor> {
     private:
         ASTContext &Context;
-        raw_ostream &OS;
-        unsigned IndentLevel;
+        llvm::StringMap<llvm::StringMap<StringRef> *> Obfuscation;
         
     public:
         ObfuscateVisitor(ASTContext& context, raw_ostream &os)
-        : Context(context), OS(os), IndentLevel(0) {};
+        : Context(context) {};
         ~ ObfuscateVisitor() {};
+        
+        bool shouldObfuscate(Decl* D);
         
         bool shouldTraversePostOrder() const;
         
         bool VisitObjCInterfaceDecl(ObjCInterfaceDecl* D);
         
-        bool VisitObjCProtocolDecl(ObjCProtocolDecl* D);
-        
         bool VisitObjCMethodDecl(ObjCMethodDecl *D);
+        
+        bool VisitObjCImplDecl(ObjCImplDecl *D);
+        
+        bool VisitObjCCategoryDecl(ObjCCategoryDecl *D);
+
+        bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D);
+        
+        bool VisitObjCMessageExpr(ObjCMessageExpr *S);
     };
    
 }

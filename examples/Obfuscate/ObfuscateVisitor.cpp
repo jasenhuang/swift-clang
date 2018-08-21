@@ -22,27 +22,66 @@
 
 #include "clang/Obfuscate/ObfuscateVisitor.h"
 
+#include "clang/Obfuscate/json.hpp"
+using json = nlohmann::json;
+
 namespace clang {
     
 #pragma mark - post order
     bool ObfuscateVisitor::shouldTraversePostOrder() const {
         return false;
     }
-    
+    bool ObfuscateVisitor::shouldObfuscate(Decl* D) {
+        for (const auto * I : D->specific_attrs<AnnotateAttr>()) {
+            if (I->getAnnotation() == "obfuscate"){
+                return true;
+            }
+        }
+        return false;
+    }
 #pragma mark - Objc Decl
     bool ObfuscateVisitor::VisitObjCInterfaceDecl(ObjCInterfaceDecl* D) {
-        //if (!D->hasAttr<PatchAttr>()) return true;
-        return true;
-    }
-
-    bool ObfuscateVisitor::VisitObjCProtocolDecl(ObjCProtocolDecl* D) {
-        //if (!D->hasAttr<PatchAttr>()) return true;
+        if (!shouldObfuscate(D)) return true;
+        llvm::StringMap<StringRef> *clsmap;
+        if (Obfuscation.find(D->getName()) != Obfuscation.end()){
+            clsmap = Obfuscation[D->getName()];
+        }else{
+            clsmap = new llvm::StringMap<StringRef> ();
+            Obfuscation[D->getName()] = clsmap;
+        }
+        
         return true;
     }
 
     bool ObfuscateVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
-        //if (!D->hasAttr<PatchAttr>()) return true;
-        //OS<< GenerateStmtPatch(D->getBody(), 0);
+        if (!shouldObfuscate(D)) return true;
+        StringRef clsname = D->getClassInterface()->getName();
+        llvm::StringMap<StringRef> *clsmap = Obfuscation[clsname];
+        
+        return true;
+    }
+    
+    bool ObfuscateVisitor::VisitObjCImplDecl(clang::ObjCImplDecl *D) {
+        if (!shouldObfuscate(D)) return true;
+        
+        return true;
+    }
+    
+    bool ObfuscateVisitor::VisitObjCCategoryDecl(clang::ObjCCategoryDecl *D){
+        if (!shouldObfuscate(D)) return true;
+        
+        return true;
+    }
+    
+    bool ObfuscateVisitor::VisitObjCCategoryImplDecl(clang::ObjCCategoryImplDecl *D){
+        if (!shouldObfuscate(D)) return true;
+        
+        return true;
+    }
+    
+    bool ObfuscateVisitor::VisitObjCMessageExpr(clang::ObjCMessageExpr *S) {
+        
+        
         return true;
     }
         
