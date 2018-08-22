@@ -380,7 +380,7 @@ void Parser::resetPragmaHandlers() {
   UnusedHandler.reset();
   PP.RemovePragmaHandler(WeakHandler.get());
   WeakHandler.reset();
-  PP.RemovePragmaHandler("clang", ObfuscateHandler.get());
+  PP.RemovePragmaHandler(ObfuscateHandler.get());
   ObfuscateHandler.reset();
   PP.RemovePragmaHandler(RedefineExtnameHandler.get());
   RedefineExtnameHandler.reset();

@@ -26,8 +26,9 @@ namespace clang {
     class ObfuscateVisitor : public RecursiveASTVisitor<ObfuscateVisitor> {
     private:
         ASTContext &Context;
-        llvm::StringMap<llvm::StringMap<StringRef> *> Obfuscation;
-        
+        llvm::StringMap<Selector> Obfuscation;
+    protected:
+        StringRef randomFunctionName(int size);
     public:
         ObfuscateVisitor(ASTContext& context, raw_ostream &os)
         : Context(context) {};
@@ -48,6 +49,8 @@ namespace clang {
         bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D);
         
         bool VisitObjCMessageExpr(ObjCMessageExpr *S);
+        
+        bool VisitObjCSelectorExpr(ObjCSelectorExpr *S);
     };
    
 }

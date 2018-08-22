@@ -642,6 +642,7 @@ enum ObjCStringFormatFamily {
 /// accounts for 78% of all selectors in Cocoa.h.
 class Selector {
   friend class Diagnostic;
+  friend class ObfuscateVisitor;
 
   enum IdentifierInfoFlag {
     // Empty selector = 0.

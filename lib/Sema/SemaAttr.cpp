@@ -655,7 +655,7 @@ void Sema::ActOnPragmaObfuscatePop(SourceLocation PragmaLoc) {
     PragmaObfuscateStack.pop_back();
 }
 
-void Sema::AddPragmaPatch(Scope *S, Decl *D) {
+void Sema::AddPragmaObfuscate(Scope *S, Decl *D) {
     if (PragmaObfuscateStack.empty()) return ;
     
     PragmaObfuscateEntry &Entry = PragmaObfuscateStack.back();

@@ -14015,7 +14015,7 @@ CreateNewDecl:
     ProcessDeclAttributeList(S, New, Attr);
   AddPragmaAttributes(S, New);
     
-  AddPragmaPatch(S, New);
+  AddPragmaObfuscate(S, New);
 
   // If this has an identifier, add it to the scope stack.
   if (TUK == TUK_Friend) {
@@ -15579,7 +15579,7 @@ Decl *Sema::ActOnEnumConstant(Scope *S, Decl *theEnumDecl, Decl *lastEnumConst,
   if (Attr) ProcessDeclAttributeList(S, New, Attr);
   AddPragmaAttributes(S, New);
 
-  AddPragmaPatch(S, New);
+  AddPragmaObfuscate(S, New);
     
   ProcessAPINotes(New);
 
