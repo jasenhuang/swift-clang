@@ -32,10 +32,11 @@ using namespace clang;
 namespace {
     
     class ObfuscateConsumer : public ASTConsumer {
-        
+        CompilerInstance &Instance;
     public:
         ObfuscateConsumer(CompilerInstance &Instance,
-                            std::set<std::string> ParsedTemplates) {}
+                            std::set<std::string> ParsedTemplates)
+        :Instance(Instance){}
         
         bool HandleTopLevelDecl(DeclGroupRef DG) override {
 
@@ -48,6 +49,9 @@ namespace {
         void HandleTranslationUnit(ASTContext& context) override {
             ObfuscateVisitor visitor(context, llvm::errs());
             visitor.TraverseDecl(context.getTranslationUnitDecl());
+            
+            //visitor.getRewriter().overwriteChangedFiles();
+            visitor.getRewriter().getEditBuffer(Instance.getSourceManager().getMainFileID()).write(llvm::errs());
         }
     };
     

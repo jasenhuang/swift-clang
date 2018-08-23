@@ -20,19 +20,29 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/StringMap.h"
+#include "clang/Rewrite/Core/Rewriter.h"
 
 namespace clang {
     
     class ObfuscateVisitor : public RecursiveASTVisitor<ObfuscateVisitor> {
     private:
         ASTContext &Context;
-        llvm::StringMap<Selector> Obfuscation;
+        Rewriter rewriter;
+        using ObfuscationTy = llvm::StringMap<llvm::StringMap<std::vector<std::string> > > ;
+        ObfuscationTy Obfuscation;
     protected:
-        StringRef randomFunctionName(int size);
+        std::string randomFunctionName(int size);
+        
+        std::vector<std::string>& selectorTokens(Selector& selector);
+        
     public:
         ObfuscateVisitor(ASTContext& context, raw_ostream &os)
-        : Context(context) {};
+        : Context(context) {
+            rewriter.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
+        };
         ~ ObfuscateVisitor() {};
+        
+        Rewriter& getRewriter() { return rewriter;}
         
         bool shouldObfuscate(Decl* D);
         

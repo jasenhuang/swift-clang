@@ -28,8 +28,7 @@ using json = nlohmann::json;
 static const char alphabet[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-static const char number[] =
-    "0123456789";
+static int seed = 0;
 
 namespace clang {
     
@@ -37,6 +36,7 @@ namespace clang {
     bool ObfuscateVisitor::shouldTraversePostOrder() const {
         return false;
     }
+    
     bool ObfuscateVisitor::shouldObfuscate(Decl* D) {
         for (const auto * I : D->specific_attrs<AnnotateAttr>()) {
             if (I->getAnnotation() == "obfuscate"){
@@ -45,12 +45,20 @@ namespace clang {
         }
         return false;
     }
-    StringRef ObfuscateVisitor::randomFunctionName(int size) {
+    std::string ObfuscateVisitor::randomFunctionName(int size) {
+        srand(++seed + time(0));
         std::string name;
         for (int i = 0; i < size; ++i) {
             name += alphabet[rand() % (sizeof(alphabet) - 1)];
         }
         return name;
+    }
+    
+    std::vector<std::string>& ObfuscateVisitor::selectorTokens(Selector& selector)
+    {
+        std::vector<std::string> toks;
+        
+        return toks;
     }
     
 #pragma mark - Objc Decl
@@ -72,40 +80,79 @@ namespace clang {
     
     bool ObfuscateVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
         if (!shouldObfuscate(D)) return true;
-        std::string cls = D->getClassInterface()->getNameAsString();
-        std::string sel = D->getSelector().getAsString();
-        StringRef key = cls + ' ' + sel;
-        Obfuscation[key] = D->getSelector();
-        
-        unsigned NumArgs = D->getDeclName().getObjCSelector().getNumArgs();
-        std::vector<IdentifierInfo *> Idents;
-        
-        if (NumArgs < 2){
-            StringRef method = randomFunctionName(4);
-            Idents.push_back(&Context.Idents.get(method));
+        std::vector<std::string> toks;
+        auto& map = Obfuscation[D->getClassInterface()->getNameAsString()];
+        if (map.find(D->getSelector().getAsString()) != map.end()){
+            toks = map[D->getSelector().getAsString()];
         }else{
-            for (unsigned i = 0; i < NumArgs; ++i) {
-                StringRef method = randomFunctionName(i ? 1 : 4);
-                Idents.push_back(&Context.Idents.get(method));
+            unsigned NumArgs = D->getSelector().getNumArgs();
+            if (NumArgs < 2){
+                toks.push_back(randomFunctionName(4));
+            }else{
+                for (unsigned i = 0; i < NumArgs; ++i) {
+                    toks.push_back(randomFunctionName(i ? 1 : 4));
+                }
             }
+            map[D->getSelector().getAsString()] = toks;
         }
-        Selector selector = Context.Selectors.getSelector(Idents.size(), Idents.data());
-        D->setDeclName(DeclarationName(selector));
+        for (unsigned i = 0; i < toks.size(); ++i) {
+            rewriter.ReplaceText(D->getSelectorLoc(i), D->getSelector().getNameForSlot(i).size(), toks[i]);
+        }
         return true;
     }
     
     bool ObfuscateVisitor::VisitObjCMessageExpr(clang::ObjCMessageExpr *S) {
-        ObjCMethodDecl* D = S->getMethodDecl();
-        if (!shouldObfuscate(D)) return true;
-        llvm::errs() << "calling:" <<D->getDeclName() << '\n';
-        
+        if (!shouldObfuscate(S->getMethodDecl())) return true;
+        for (ObfuscationTy::iterator I = Obfuscation.begin(); I != Obfuscation.end(); ++I) {
+            auto& map = I->getValue();
+            if (map.find(S->getSelector().getAsString()) != map.end()){
+                auto& toks = map[S->getSelector().getAsString()];
+                for (unsigned i = 0; i < toks.size(); ++i) {
+                    rewriter.ReplaceText(S->getSelectorLoc(i), S->getSelector().getNameForSlot(i).size(), toks[i]);
+                }
+                break;
+            }
+        }
+        /*
+        StringRef C = S->getReceiverInterface()->getName();
+        auto& map = Obfuscation[C];
+        if (map.find(S->getSelector().getAsString()) != map.end()){
+            auto& toks = map[S->getSelector().getAsString()];
+            for (unsigned i = 0; i < toks.size(); ++i) {
+                rewriter.ReplaceText(S->getSelectorLoc(i), S->getSelector().getNameForSlot(i).size(), toks[i]);
+            }
+        }
+         */
         return true;
     }
     
     // @selector(...)
     bool ObfuscateVisitor::VisitObjCSelectorExpr(ObjCSelectorExpr *S) {
-        std::string sel = S->getSelector().getAsString();
-        llvm::errs() << "@:" << sel << '\n';
+        SourceLocation L = S->getSourceRange().getBegin().getLocWithOffset(10);
+        
+        for (ObfuscationTy::iterator I = Obfuscation.begin(); I != Obfuscation.end(); ++I) {
+            auto& map = I->getValue();
+            if (map.find(S->getSelector().getAsString()) != map.end()){
+                auto& toks = map[S->getSelector().getAsString()];
+                for (unsigned i = 0; i < toks.size(); ++i) {
+                    rewriter.ReplaceText(L, S->getSelector().getNameForSlot(i).size(), toks[i]);
+                    L = L.getLocWithOffset(S->getSelector().getNameForSlot(i).size() + 1);
+                }
+                return true;
+            }
+        }
+
+        unsigned NumArgs = S->getSelector().getNumArgs();
+        if (NumArgs < 2){
+            StringRef method = randomFunctionName(4);
+            rewriter.ReplaceText(L, S->getSelector().getNameForSlot(0).size(), method);
+        }else{
+            for (unsigned i = 0; i < NumArgs; ++i) {
+                StringRef method = randomFunctionName(i ? 1 : 4);
+                rewriter.ReplaceText(L, S->getSelector().getNameForSlot(i).size(), method);
+                L = L.getLocWithOffset(S->getSelector().getNameForSlot(i).size() + 1);
+            }
+        }
         return true;
     }
         
