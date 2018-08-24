@@ -22,22 +22,23 @@
 #include "llvm/ADT/StringMap.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 
+#include "clang/Obfuscate/json.hpp"
+using JSON = nlohmann::json;
+
 namespace clang {
     
     class ObfuscateVisitor : public RecursiveASTVisitor<ObfuscateVisitor> {
     private:
         ASTContext &Context;
         Rewriter rewriter;
-        using ObfuscationTy = llvm::StringMap<llvm::StringMap<std::vector<std::string> > > ;
-        ObfuscationTy Obfuscation;
+        //using ObfuscationTy = llvm::StringMap<llvm::StringMap<std::vector<std::string> > > ;
+        JSON &json;
     protected:
         std::string randomFunctionName(int size);
-        
-        std::vector<std::string>& selectorTokens(Selector& selector);
-        
+        bool selectorTokens(Selector S, JSON& toks);
     public:
-        ObfuscateVisitor(ASTContext& context, raw_ostream &os)
-        : Context(context) {
+        ObfuscateVisitor(ASTContext& context, JSON &json)
+        : Context(context), json(json) {
             rewriter.setSourceMgr(Context.getSourceManager(), Context.getLangOpts());
         };
         ~ ObfuscateVisitor() {};
