@@ -51,17 +51,21 @@ namespace clang {
         
         bool VisitObjCInterfaceDecl(ObjCInterfaceDecl* D);
         
-        bool VisitObjCMethodDecl(ObjCMethodDecl *D);
-        
         bool VisitObjCImplDecl(ObjCImplDecl *D);
         
         bool VisitObjCCategoryDecl(ObjCCategoryDecl *D);
 
         bool VisitObjCCategoryImplDecl(ObjCCategoryImplDecl *D);
         
-        bool VisitObjCMessageExpr(ObjCMessageExpr *S);
+        // - (void)sayHello:(NSString*)msg to:(NSString*)user
+        bool VisitObjCMethodDecl(ObjCMethodDecl *D);
         
+        // [TestClass sayHello:to:]
+        bool VisitObjCMessageExpr(clang::ObjCMessageExpr *S) ;
+        
+        // @selector(...)
         bool VisitObjCSelectorExpr(ObjCSelectorExpr *S);
+
     };
    
 }

@@ -98,7 +98,7 @@ namespace clang {
     bool ObfuscateVisitor::VisitObjCCategoryImplDecl(clang::ObjCCategoryImplDecl *D){
         return true;
     }
-    
+    // - (void)sayHello:(NSString*)msg to:(NSString*)user
     bool ObfuscateVisitor::VisitObjCMethodDecl(ObjCMethodDecl *D) {
         if (!shouldObfuscate(D)) return true;
         
@@ -110,10 +110,10 @@ namespace clang {
         }
         return true;
     }
-    
+    // [TestClass sayHello:to:]
     bool ObfuscateVisitor::VisitObjCMessageExpr(clang::ObjCMessageExpr *S) {
         if (S->getMethodDecl() && !shouldObfuscate(S->getMethodDecl())) return true;
-        
+
         JSON toks;
         selectorTokens(S->getSelector(), toks);
         

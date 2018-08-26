@@ -8473,7 +8473,7 @@ public:
   /// '\#pragma clang attribute push' directives to the given declaration.
   void AddPragmaAttributes(Scope *S, Decl *D);
 
-  /// '\#pragma clang patch begin' directives to the given declaration.
+  /// '\#pragma obfuscate begin' directives to the given declaration.
   void AddPragmaObfuscate(Scope *S, Decl *D);
 
   void DiagnoseUnterminatedPragmaAttribute();

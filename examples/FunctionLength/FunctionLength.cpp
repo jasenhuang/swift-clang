@@ -24,6 +24,8 @@
 
 #include "clang/Tooling/Tooling.h"
 #include "clang/Tooling/CommonOptionsParser.h"
+#include <fstream>
+#include <iostream>
 
 using namespace clang;
 
@@ -32,17 +34,29 @@ namespace {
     class FunctionLengthVisitor : public RecursiveASTVisitor<FunctionLengthVisitor> {
     private:
         ASTContext &Context;
+        raw_ostream& OS;
+        unsigned int FunctionCount;
+        std::vector<std::string> Functions;
     public:
         FunctionLengthVisitor(ASTContext& context, raw_ostream &os)
-        : Context(context) {};
+        : Context(context), OS(os) {}
         ~ FunctionLengthVisitor() {};
+        
+        bool VisitObjCMethodDecl(ObjCMethodDecl *D) {
+            if (!D->getCompoundBody()) return true;
+            ++ FunctionCount;
+            Functions.push_back(D->getSelector().getAsString() );
+            OS << D->getSelector().getAsString() << '\n';
+            return true;
+        }
     };
     
     class FunctionLengthConsumer : public ASTConsumer {
-        
+        CompilerInstance &Instance;
     public:
         FunctionLengthConsumer(CompilerInstance &Instance,
-                            std::set<std::string> ParsedTemplates) {}
+                            std::set<std::string> ParsedTemplates)
+        :Instance(Instance) {}
         
         bool HandleTopLevelDecl(DeclGroupRef DG) override {
 
@@ -53,8 +67,24 @@ namespace {
         }
         
         void HandleTranslationUnit(ASTContext& context) override {
-            FunctionLengthVisitor visitor(context, llvm::errs());
-            visitor.TraverseDecl(context.getTranslationUnitDecl());
+            
+            FileID ID = Instance.getSourceManager().getMainFileID();
+            const FileEntry *Entry = Instance.getSourceManager().getFileEntryForID(ID);
+            std::string Path = Entry->getName();
+            Path += ".info";
+            std::error_code EC;
+            llvm::raw_fd_ostream OS(Path, EC, llvm::sys::fs::OpenFlags::F_RW);
+            
+            if (!EC) {
+                llvm::errs() << "Writing function to:" << Path << "\n";
+                FunctionLengthVisitor visitor(context, OS);
+                visitor.TraverseDecl(context.getTranslationUnitDecl());
+                OS.close();
+                
+            } else {
+                llvm::errs() << "Failed to write function to:" << Path << "\n";
+            }
+            
         }
     };
     
