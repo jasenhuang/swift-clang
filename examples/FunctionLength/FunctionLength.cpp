@@ -71,7 +71,7 @@ namespace {
             FileID ID = Instance.getSourceManager().getMainFileID();
             const FileEntry *Entry = Instance.getSourceManager().getFileEntryForID(ID);
             std::string Path = Entry->getName();
-            Path += ".info";
+            Path += ".statistic";
             std::error_code EC;
             llvm::raw_fd_ostream OS(Path, EC, llvm::sys::fs::OpenFlags::F_RW);
             
