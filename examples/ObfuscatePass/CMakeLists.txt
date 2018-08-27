@@ -11,10 +11,14 @@ set(LLVM_LINK_COMPONENTS Core Support)
 endif()
 
 add_llvm_loadable_module(Obfuscation
-ObfuscatePass.cpp
+    ObfuscatePass.cpp
 
-DEPENDS
-intrinsics_gen
-PLUGIN_TOOL
-opt
+    DEPENDS
+    intrinsics_gen
+    PLUGIN_TOOL
+    opt
+)
+
+target_link_libraries(Obfuscation PRIVATE
+    hiredis
 )

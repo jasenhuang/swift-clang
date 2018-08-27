@@ -13,13 +13,13 @@
 using namespace llvm;
 
 namespace {
-    // ObfuscatePass - The first implementation, without getAnalysisUsage.
-    class ObfuscateFunctionPass : public FunctionPass {
+    
+    class FunctionStatisticPass : public FunctionPass {
     public:
         static char ID; // Pass identification, replacement for typeid
         redisContext *pRedisContext;
         
-        ObfuscateFunctionPass() : FunctionPass(ID) {}
+        FunctionStatisticPass() : FunctionPass(ID) {}
         
         bool doInitialization(Module & M) override {
             struct timeval timeout = {2, 0};
@@ -43,17 +43,19 @@ namespace {
         }
         
         bool runOnFunction(Function &F) override {
-            llvm::errs()<< "Function:" << F.getName() << '\n';
             
-            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "SET %s %s", "Function", F.getName().str());  //执行INFO命令
-            llvm::errs() << pRedisReply->str << '\n';
+            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "INCR %s" , F.getName());
             freeReplyObject(pRedisReply);
             
-            
+            /*
+            pRedisReply = (redisReply*)redisCommand(pRedisContext, "GET %s", F.getName());
+            llvm::errs() << F.getName() << ":" << pRedisReply->str << '\n';
+            freeReplyObject(pRedisReply);
             for (Function::iterator it = F.begin(); it != F.end(); ++it) {
-                llvm::errs() <<it->getName() << ' ';
+                
             }
             llvm::errs() << '\n';
+            */
             return false;
         }
     };
@@ -75,8 +77,8 @@ namespace {
     };
 }
 
-char ObfuscateFunctionPass::ID = 0;
-static RegisterPass<ObfuscateFunctionPass> F("ObfuscateFunction", "Obfuscate Function Pass");
+char FunctionStatisticPass::ID = 0;
+static RegisterPass<FunctionStatisticPass> F("FunctionStatistic", "statistic Function Pass");
 
 char ObfuscateModulePass::ID = 0;
 static RegisterPass<ObfuscateModulePass> M("ObfuscateModule", "Obfuscate Module Pass");
@@ -84,7 +86,7 @@ static RegisterPass<ObfuscateModulePass> M("ObfuscateModule", "Obfuscate Module 
 static RegisterStandardPasses
 registerObfuscate(PassManagerBuilder::EP_EarlyAsPossible,
               [](const PassManagerBuilder &,legacy::PassManagerBase &PM){
-                  PM.add(new ObfuscateFunctionPass());
-                  PM.add(new ObfuscateModulePass());
+                  PM.add(new FunctionStatisticPass());
+                  //PM.add(new ObfuscateModulePass());
               });
 
