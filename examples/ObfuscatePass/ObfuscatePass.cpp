@@ -8,6 +8,7 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include <hiredis/hiredis.h>
 
 using namespace llvm;
 
@@ -16,10 +17,39 @@ namespace {
     class ObfuscateFunctionPass : public FunctionPass {
     public:
         static char ID; // Pass identification, replacement for typeid
+        redisContext *pRedisContext;
+        
         ObfuscateFunctionPass() : FunctionPass(ID) {}
+        
+        bool doInitialization(Module & M) override {
+            struct timeval timeout = {2, 0};
+            //redisContext是Redis操作对象
+            pRedisContext = (redisContext*)redisConnectWithTimeout("127.0.0.1", 6379, timeout);
+            if ( (NULL == pRedisContext) || (pRedisContext->err) ) {
+                if (pRedisContext) {
+                    llvm::errs() << "connect error:" << pRedisContext->errstr << '\n';
+                }else{
+                    llvm::errs() << "connect error: can't allocate redis context." << '\n';
+                }
+                return false;
+            }
+            
+            return true;
+        }
+        
+        bool doFinalization(Module &) override {
+            
+            return false;
+        }
         
         bool runOnFunction(Function &F) override {
             llvm::errs()<< "Function:" << F.getName() << '\n';
+            
+            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "SET %s %s", "Function", F.getName().str());  //执行INFO命令
+            llvm::errs() << pRedisReply->str << '\n';
+            freeReplyObject(pRedisReply);
+            
+            
             for (Function::iterator it = F.begin(); it != F.end(); ++it) {
                 llvm::errs() <<it->getName() << ' ';
             }
