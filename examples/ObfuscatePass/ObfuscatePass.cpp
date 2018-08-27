@@ -33,7 +33,14 @@ namespace {
                 }
                 return false;
             }
-            
+            /*
+            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "KEYS *");
+            size_t total = 0;
+            for (size_t i = 0; i < pRedisReply->elements;++i) {
+                total += strlen(pRedisReply->element[i]->str);
+            }
+            llvm::errs() << "average = " << (total / pRedisReply->elements) << '\n';
+            */
             return true;
         }
         
@@ -44,7 +51,8 @@ namespace {
         
         bool runOnFunction(Function &F) override {
             
-            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "INCR %s" , F.getName());
+            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext,
+                                                                "INCR %s" , F.getName());
             freeReplyObject(pRedisReply);
             
             /*
