@@ -33,14 +33,15 @@ namespace {
                 }
                 return false;
             }
-            /*
+            
             redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "KEYS *");
-            size_t total = 0;
-            for (size_t i = 0; i < pRedisReply->elements;++i) {
+            size_t total = 0, count = pRedisReply->elements;
+            for (size_t i = 0; i < count; ++i) {
+                llvm::errs()<< pRedisReply->element[i]->str <<'\n';
                 total += strlen(pRedisReply->element[i]->str);
             }
-            llvm::errs() << "average = " << (total / pRedisReply->elements) << '\n';
-            */
+            llvm::errs() << "average = " << (total / count) << '\n';
+            
             return true;
         }
         
@@ -51,19 +52,20 @@ namespace {
         
         bool runOnFunction(Function &F) override {
             
-            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext,
-                                                                "INCR %s" , F.getName());
+            /*
+            redisReply *pRedisReply = (redisReply*)redisCommand(pRedisContext, "INCR %s" , F.getName());
             freeReplyObject(pRedisReply);
             
-            /*
             pRedisReply = (redisReply*)redisCommand(pRedisContext, "GET %s", F.getName());
             llvm::errs() << F.getName() << ":" << pRedisReply->str << '\n';
             freeReplyObject(pRedisReply);
+             */
+            
             for (Function::iterator it = F.begin(); it != F.end(); ++it) {
                 
             }
             llvm::errs() << '\n';
-            */
+            
             return false;
         }
     };
@@ -80,6 +82,7 @@ namespace {
                     llvm::errs() << "GV:" << it->getName() << '\n';
                 }
             }
+            Module::const_ifunc_iterator fit;
             return false;
         }
     };
